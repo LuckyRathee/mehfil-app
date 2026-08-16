@@ -4,6 +4,7 @@ import TopBar from './components/TopBar'
 import SceneBackground from './components/SceneBackground'
 import VibeSwitcher from './components/VibeSwitcher'
 import PlayerBar from './components/PlayerBar'
+import { isYoutubeUrl, getYoutubeAudioStream } from './utils/youtubeConverter'
 import './App.css'
 
 function App() {
@@ -51,14 +52,32 @@ function App() {
   useEffect(() => {
     const audio = audioRef.current
     if (!audio) return
-    audio.src = currentTrack.src
-    audio.currentTime = 0
-    setProgress(0)
-    audio
-      .play()
-      .catch(() => {
-        // autoplay may be blocked; keep audio ready for user interactions
-      })
+
+    const loadTrack = async () => {
+      try {
+        let audioSrc = currentTrack.src
+        console.log('Loading track:', currentTrack.title, 'URL:', audioSrc)
+
+        // If it's a YouTube URL, convert it to an audio stream
+        if (isYoutubeUrl(audioSrc)) {
+          console.log('Detected YouTube URL, converting...')
+          audioSrc = await getYoutubeAudioStream(audioSrc)
+          console.log('Converted URL:', audioSrc)
+        }
+
+        audio.src = audioSrc
+        audio.currentTime = 0
+        setProgress(0)
+        audio.play().catch((err) => {
+          console.error('Playback error:', err)
+          // autoplay may be blocked; keep audio ready for user interactions
+        })
+      } catch (error) {
+        console.error('Error loading track:', error)
+      }
+    }
+
+    loadTrack()
   }, [currentTrack.src])
 
   useEffect(() => {
@@ -90,6 +109,7 @@ function App() {
         label={activeVibe.label}
         backgroundColor={activeVibe.backgroundColor}
         backgroundImage={activeVibe.backgroundImage}
+        backgroundVideo={activeVibe.backgroundVideo}
       >
         <div className="scene__bottom">
           <PlayerBar
@@ -99,12 +119,12 @@ function App() {
             progress={progress}
             onToggleMute={() => setIsMuted((value) => !value)}
           />
-          <VibeSwitcher
-            vibes={vibes}
-            activeVibeId={activeVibeId}
-            onSelectVibe={setActiveVibeId}
-          />
         </div>
+        <VibeSwitcher
+          vibes={vibes}
+          activeVibeId={activeVibeId}
+          onSelectVibe={setActiveVibeId}
+        />
         <div className="audience-bubble" aria-label="Live audience count">
           <div className="audience-bubble__dot" />
           <div className="audience-bubble__count">{audienceCount.toLocaleString()}</div>

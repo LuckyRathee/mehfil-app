@@ -10,6 +10,7 @@ export interface Vibe {
   backgroundColor: string
   colorTheme: string
   backgroundImage?: string
+  backgroundVideo?: string
   tracks: Track[]
 }
 
@@ -20,10 +21,12 @@ const vibes: Vibe[] = [
     backgroundColor: '#C8A887',
     colorTheme: '#7A5A3F',
     backgroundImage: '/images/chai-sutta.png',
+    backgroundVideo: '/videos/add_little_movement_to_this_im.mp4',
     tracks: [
       { title: 'Smoky Chai Beats', artist: 'Delhi Dusk', src: '/audio/chai-sutta-1.mp3' },
       { title: 'Station Murmurs', artist: 'Kolkata Loops', src: '/audio/chai-sutta-2.mp3' },
       { title: 'Evening Smoke', artist: 'Bengal Dust', src: '/audio/chai-sutta-3.mp3' },
+      { title: 'YouTube Audio', artist: 'YouTube', src: 'https://youtu.be/T_O_UWkRds4?si=dYjZEdQeCHTeDJ0Y' },
     ],
   },
   {
@@ -32,6 +35,7 @@ const vibes: Vibe[] = [
     backgroundColor: '#1A123A',
     colorTheme: '#6EE7E6',
     backgroundImage: '/images/weedy-valley.png',
+    backgroundVideo: '/videos/add_little_movement_to_this_im_weedy_valley.mp4',
     tracks: [
       { title: 'Himalayan Drive', artist: 'Psy Lotus', src: '/audio/weedy-valley-1.mp3' },
       { title: 'Rave Fog', artist: 'Echo Nomad', src: '/audio/weedy-valley-2.mp3' },
@@ -44,6 +48,7 @@ const vibes: Vibe[] = [
     backgroundColor: '#611A1A',
     colorTheme: '#F97316',
     backgroundImage: '/images/panwadi.png',
+    backgroundVideo: '/videos/panwadi.mp4',
     tracks: [
       { title: '90s Paan Talk', artist: 'Mumbai Nights', src: '/audio/panwadi-1.mp3' },
       { title: 'Tinted Glass', artist: 'Retro Sahib', src: '/audio/panwadi-2.mp3' },
