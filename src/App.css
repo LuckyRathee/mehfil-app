@@ -208,6 +208,35 @@ textarea {
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.4);
 }
 
+/* Audio error message */
+.audio-error {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 10px 14px;
+  background: rgba(239, 68, 68, 0.18);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 12px;
+  color: #fca5a5;
+  font-size: clamp(0.72rem, 0.9vw, 0.84rem);
+  text-align: center;
+  backdrop-filter: blur(8px);
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .player-bar {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;

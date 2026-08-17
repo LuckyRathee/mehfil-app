@@ -1,36 +1,35 @@
-import { useEffect, useRef, useState } from 'react'
-import vibes from './vibes'
+import { useState, useEffect, useRef } from 'react'
+import YouTube, { type YouTubeProps } from 'react-youtube'
 import TopBar from './components/TopBar'
 import SceneBackground from './components/SceneBackground'
 import VibeSwitcher from './components/VibeSwitcher'
 import PlayerBar from './components/PlayerBar'
-import { isYoutubeUrl, getYoutubeAudioStream } from './utils/youtubeConverter'
+import vibes, { type Vibe } from './vibes'
 import './App.css'
 
-function App() {
-  const [activeVibeId, setActiveVibeId] = useState(vibes[0].id)
-  const [currentTrackIndex, setCurrentTrackIndex] = useState(0)
+export default function App() {
+  const [currentVibe, setCurrentVibe] = useState<Vibe>(vibes[0])
   const [isMuted, setIsMuted] = useState(false)
   const [progress, setProgress] = useState(0)
-  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const [trackTitle, setTrackTitle] = useState('Shut Up and Listen')
+  const [trackArtist, setTrackArtist] = useState('Mehfil Radio')
+  const [loadError, setLoadError] = useState<string | null>(null)
+
+  const [playerTarget, setPlayerTarget] = useState<any>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
 
   const audienceBase: Record<string, number> = {
     'chai-sutta': 860,
     'weedy-valley': 3240,
     panwadi: 1120,
   }
-
-  const activeVibe = vibes.find((vibe) => vibe.id === activeVibeId) ?? vibes[0]
-  const currentTrack = activeVibe.tracks[currentTrackIndex % activeVibe.tracks.length]
-  const [audienceCount, setAudienceCount] = useState<number>(audienceBase[activeVibeId] ?? 1000)
-
-  useEffect(() => {
-    setCurrentTrackIndex(0)
-  }, [activeVibeId])
+  const [audienceCount, setAudienceCount] = useState<number>(
+    audienceBase[currentVibe.id] ?? 1000
+  )
 
   useEffect(() => {
-    setAudienceCount(audienceBase[activeVibeId] ?? 1000)
-  }, [activeVibeId])
+    setAudienceCount(audienceBase[currentVibe.id] ?? 1000)
+  }, [currentVibe.id])
 
   useEffect(() => {
     const interval = window.setInterval(() => {
@@ -39,100 +38,143 @@ function App() {
         return Math.max(45, count + delta)
       })
     }, 4000)
-
     return () => window.clearInterval(interval)
   }, [])
 
-  useEffect(() => {
-    const audio = audioRef.current
-    if (!audio) return
-    audio.muted = isMuted
-  }, [isMuted])
+  const onPlayerReady: YouTubeProps['onReady'] = (event) => {
+    setPlayerTarget(event.target)
+    event.target.playVideo()
+    if (isMuted) {
+      event.target.mute()
+    } else {
+      event.target.unMute()
+    }
+  }
 
-  useEffect(() => {
-    const audio = audioRef.current
-    if (!audio) return
-
-    const loadTrack = async () => {
-      try {
-        let audioSrc = currentTrack.src
-        console.log('Loading track:', currentTrack.title, 'URL:', audioSrc)
-
-        // If it's a YouTube URL, convert it to an audio stream
-        if (isYoutubeUrl(audioSrc)) {
-          console.log('Detected YouTube URL, converting...')
-          audioSrc = await getYoutubeAudioStream(audioSrc)
-          console.log('Converted URL:', audioSrc)
-        }
-
-        audio.src = audioSrc
-        audio.currentTime = 0
-        setProgress(0)
-        audio.play().catch((err) => {
-          console.error('Playback error:', err)
-          // autoplay may be blocked; keep audio ready for user interactions
-        })
-      } catch (error) {
-        console.error('Error loading track:', error)
+  const onStateChange: YouTubeProps['onStateChange'] = (event) => {
+    if (event.data === 1) {
+      setLoadError(null)
+      const videoData = event.target.getVideoData()
+      if (videoData && videoData.title) {
+        const cleanTitle = videoData.title
+          .replace(/\|.*$/, '')
+          .replace(/\(Official.*?\)/gi, '')
+          .trim()
+        setTrackTitle(cleanTitle)
+        setTrackArtist(videoData.author || currentVibe.label)
       }
     }
+  }
 
-    loadTrack()
-  }, [currentTrack.src])
+  const onPlayerError: YouTubeProps['onError'] = () => {
+    setLoadError('Audio playback error')
+  }
 
   useEffect(() => {
-    const audio = audioRef.current
-    if (!audio) return
+    if (!playerTarget) return
+    const interval = setInterval(() => {
+      try {
+        if (playerTarget.getPlayerState && playerTarget.getPlayerState() === 1) {
+          const currentTime = playerTarget.getCurrentTime() || 0
+          const duration = playerTarget.getDuration() || 1
+          if (duration > 0) {
+            setProgress((currentTime / duration) * 100)
+          }
+        }
+      } catch (e) {}
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [playerTarget])
 
-    const handleTimeUpdate = () => {
-      if (!audio.duration || Number.isNaN(audio.duration)) return
-      setProgress((audio.currentTime / audio.duration) * 100)
+  const handleSelectVibe = (vibeId: string) => {
+    const found = vibes.find((v) => v.id === vibeId)
+    if (found) {
+      setCurrentVibe(found)
+      setProgress(0)
+      setLoadError(null)
+      if (playerTarget && found.playlistId) {
+        playerTarget.loadPlaylist({
+          list: found.playlistId,
+          listType: 'playlist',
+          index: 0,
+          startSeconds: 0,
+        })
+      }
     }
+  }
 
-    const handleEnded = () => {
-      setCurrentTrackIndex((index) => (index + 1) % activeVibe.tracks.length)
+  const handleToggleMute = () => {
+    if (playerTarget) {
+      if (isMuted) {
+        playerTarget.unMute()
+      } else {
+        playerTarget.mute()
+      }
     }
+    setIsMuted(!isMuted)
+  }
 
-    audio.addEventListener('timeupdate', handleTimeUpdate)
-    audio.addEventListener('ended', handleEnded)
-
-    return () => {
-      audio.removeEventListener('timeupdate', handleTimeUpdate)
-      audio.removeEventListener('ended', handleEnded)
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.playbackRate = 0.8
+      videoRef.current.play().catch(() => {})
     }
-  }, [activeVibe.tracks.length])
+  }, [currentVibe])
+
+  const opts: YouTubeProps['opts'] = {
+    height: '0',
+    width: '0',
+    playerVars: {
+      listType: 'playlist',
+      list: currentVibe.playlistId || 'PL4fGSI1pDJn4pTWyM3t61lOyZ6_4jcNOw',
+      autoplay: 1,
+      controls: 0,
+      disablekb: 1,
+    },
+  }
 
   return (
     <div className="app-shell">
       <TopBar />
       <SceneBackground
-        label={activeVibe.label}
-        backgroundColor={activeVibe.backgroundColor}
-        backgroundImage={activeVibe.backgroundImage}
-        backgroundVideo={activeVibe.backgroundVideo}
+        label={currentVibe.label}
+        backgroundColor={currentVibe.backgroundColor}
+        backgroundImage={currentVibe.backgroundImage}
+        backgroundVideo={currentVibe.backgroundVideo}
       >
         <div className="scene__bottom">
           <PlayerBar
-            title={currentTrack.title}
-            artist={currentTrack.artist}
+            title={trackTitle}
+            artist={trackArtist}
             isMuted={isMuted}
             progress={progress}
-            onToggleMute={() => setIsMuted((value) => !value)}
+            onToggleMute={handleToggleMute}
           />
+          {loadError && (
+            <div className="audio-error" role="alert" aria-live="polite">
+              ⚠️ {loadError}
+            </div>
+          )}
         </div>
         <VibeSwitcher
           vibes={vibes}
-          activeVibeId={activeVibeId}
-          onSelectVibe={setActiveVibeId}
+          activeVibeId={currentVibe.id}
+          onSelectVibe={handleSelectVibe}
         />
         <div className="audience-bubble" aria-label="Live audience count">
           <div className="audience-bubble__dot" />
           <div className="audience-bubble__count">{audienceCount.toLocaleString()}</div>
         </div>
       </SceneBackground>
-      <audio ref={audioRef} preload="auto" />
+
+      <div style={{ display: 'none' }} aria-hidden="true">
+        <YouTube
+          opts={opts}
+          onReady={onPlayerReady}
+          onStateChange={onStateChange}
+          onError={onPlayerError}
+        />
+      </div>
     </div>
   )
 }
-
-export default App
