@@ -59,6 +59,48 @@ const vibes: Vibe[] = [
       { title: 'Late-Night Chaar', artist: 'Bollywood Afterglow', src: '/audio/panwadi-3.mp3' },
     ],
   },
+  {
+    id: 'bus-driver',
+    label: 'Bus Driver',
+    backgroundColor: '#2C1810',
+    colorTheme: '#FFA726',
+    backgroundImage: '/images/chai-sutta.png',
+    backgroundVideo: '/videos/bus-driver.mp4',
+    playlistId: 'PLFgquLnL59alW3xmYiWRaoz0oM3H17Lth',
+    tracks: [
+      { title: 'Highway Rhythm', artist: 'Road Warriors', src: '/audio/bus-driver-1.mp3' },
+      { title: 'Engine Hum', artist: 'Journey Beats', src: '/audio/bus-driver-2.mp3' },
+      { title: 'Sunset Route', artist: 'Travel Vibes', src: '/audio/bus-driver-3.mp3' },
+    ],
+  },
+  {
+    id: 'saloon',
+    label: 'Saloon',
+    backgroundColor: '#1C1C28',
+    colorTheme: '#E91E63',
+    backgroundImage: '/images/panwadi.png',
+    backgroundVideo: '/videos/saloon.mp4',
+    playlistId: 'PLw-VjHDlEOgvtnnnqWlTqByAtC7tXZMjT',
+    tracks: [
+      { title: 'Mirror Talk', artist: 'Style Sessions', src: '/audio/saloon-1.mp3' },
+      { title: 'Clipper Beats', artist: 'Barber Shop Groove', src: '/audio/saloon-2.mp3' },
+      { title: 'Fresh Fade', artist: 'Urban Cuts', src: '/audio/saloon-3.mp3' },
+    ],
+  },
+  {
+    id: 'old-night-drives',
+    label: 'Old Night Drives',
+    backgroundColor: '#0A0E1A',
+    colorTheme: '#64B5F6',
+    backgroundImage: '/images/weedy-valley.png',
+    backgroundVideo: '/videos/old-night-drives.mp4',
+    playlistId: 'PLw-VjHDlEOguDyf2JBQZ0W5cG9Nb_Rb3F',
+    tracks: [
+      { title: 'Midnight Highway', artist: 'Retrowave Dreams', src: '/audio/old-night-drives-1.mp3' },
+      { title: 'Neon Memories', artist: '80s Nights', src: '/audio/old-night-drives-2.mp3' },
+      { title: 'City Lights', artist: 'Synthwave Collective', src: '/audio/old-night-drives-3.mp3' },
+    ],
+  },
 ]
 
 export default vibes
