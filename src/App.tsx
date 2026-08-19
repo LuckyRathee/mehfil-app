@@ -4,6 +4,7 @@ import TopBar from './components/TopBar'
 import SceneBackground from './components/SceneBackground'
 import VibeSwitcher from './components/VibeSwitcher'
 import PlayerBar from './components/PlayerBar'
+import DonationButton from './components/DonationButton'
 import vibes, { type Vibe } from './vibes'
 import './App.css'
 
@@ -178,6 +179,7 @@ export default function App() {
           onError={onPlayerError}
         />
       </div>
+      <DonationButton />
     </div>
   )
 }

@@ -46,11 +46,11 @@ const vibes: Vibe[] = [
     ],
   },
   {
-    id: 'panwadi',
-    label: 'Panwadi',
+    id: 'theth-desi',
+    label: 'Theth Desi',
     backgroundColor: '#611A1A',
     colorTheme: '#F97316',
-    backgroundImage: '/images/panwadi.png',
+    backgroundImage: '/images/theth-desi.png',
     //backgroundVideo: '/videos/panwadi.mp4',
     playlistId: 'RDMASZ7glxV2w',
     tracks: [
