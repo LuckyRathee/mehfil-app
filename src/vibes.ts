@@ -22,7 +22,7 @@ const vibes: Vibe[] = [
     backgroundColor: '#C8A887',
     colorTheme: '#7A5A3F',
     backgroundImage: '/images/chai-sutta.png',
-    backgroundVideo: '/videos/add_little_movement_to_this_im.mp4',
+    //backgroundVideo: '/images/chai-sutta.png',
     playlistId: 'PLqUiEGO2-62v2C2yCmPHdRs-z_p3j7m7M',
     tracks: [
       { title: 'Smoky Chai Beats', artist: 'Delhi Dusk', src: '/audio/chai-sutta-1.mp3' },
@@ -37,7 +37,7 @@ const vibes: Vibe[] = [
     backgroundColor: '#1A123A',
     colorTheme: '#6EE7E6',
     backgroundImage: '/images/weedy-valley.png',
-    backgroundVideo: '/images/weedy-valley.png',
+    //backgroundVideo: '/images/weedy-valley.png',
     playlistId: 'PLDPlCaMP9SofsDI4Fe1SYsOW5sLUoDxc5',
     tracks: [
       { title: 'Himalayan Drive', artist: 'Psy Lotus', src: '/audio/weedy-valley-1.mp3' },
@@ -46,12 +46,12 @@ const vibes: Vibe[] = [
     ],
   },
   {
-    id: 'panwadi',
-    label: 'Panwadi',
+    id: 'theth-desi',
+    label: 'Theth Desi',
     backgroundColor: '#611A1A',
     colorTheme: '#F97316',
-    backgroundImage: '/images/panwadi.png',
-    backgroundVideo: '/videos/panwadi.mp4',
+    backgroundImage: '/images/theth-desi.png',
+    //backgroundVideo: '/videos/panwadi.mp4',
     playlistId: 'RDMASZ7glxV2w',
     tracks: [
       { title: '90s Paan Talk', artist: 'Mumbai Nights', src: '/audio/panwadi-1.mp3' },
@@ -65,7 +65,7 @@ const vibes: Vibe[] = [
     backgroundColor: '#2C1810',
     colorTheme: '#FFA726',
     backgroundImage: '/images/bus-driver.png',
-    backgroundVideo: '/images/bus-driver.png',
+    //backgroundVideo: '/images/bus-driver.png',
     playlistId: 'PLFgquLnL59alW3xmYiWRaoz0oM3H17Lth',
     tracks: [
       { title: 'Highway Rhythm', artist: 'Road Warriors', src: '/audio/bus-driver-1.mp3' },
@@ -79,7 +79,7 @@ const vibes: Vibe[] = [
     backgroundColor: '#1C1C28',
     colorTheme: '#E91E63',
     backgroundImage: '/images/saloon.png',
-    backgroundVideo: '/images/saloon.png',
+    //backgroundVideo: '/images/saloon.png',
     playlistId: 'PLFgquLnL59alW3xmYiWRaoz0oM3H17Lth',
     tracks: [
       { title: 'Mirror Talk', artist: 'Style Sessions', src: '/audio/saloon-1.mp3' },
@@ -92,8 +92,8 @@ const vibes: Vibe[] = [
     label: 'Old Night Drives',
     backgroundColor: '#0A0E1A',
     colorTheme: '#64B5F6',
-    backgroundImage: '/images/Late_night_ride.png',
-    backgroundVideo: '/images/Late_night_ride.png',
+    backgroundImage: '/images/old-night-drive.png',
+    //backgroundVideo: '/images/Late_night_ride.png',
     playlistId: 'PLFgquLnL59alW3xmYiWRaoz0oM3H17Lth',
     tracks: [
       { title: 'Midnight Highway', artist: 'Retrowave Dreams', src: '/audio/old-night-drives-1.mp3' },
