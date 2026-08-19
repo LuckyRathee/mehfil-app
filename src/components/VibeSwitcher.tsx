@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Vibe } from '../vibes'
 
 interface VibeSwitcherProps {
@@ -23,7 +23,10 @@ export default function VibeSwitcher({ vibes, activeVibeId, onSelectVibe }: Vibe
     return () => document.removeEventListener('mousedown', handlePointerDown)
   }, [])
 
-  const activeVibe = vibes.find((vibe) => vibe.id === activeVibeId) ?? vibes[0]
+  const handleSelect = useCallback((id: string) => {
+    onSelectVibe(id)
+    setIsOpen(false)
+  }, [onSelectVibe])
 
   return (
     <div ref={wrapperRef} className={`vibe-switcher ${isOpen ? 'open' : ''}`}>
@@ -32,8 +35,13 @@ export default function VibeSwitcher({ vibes, activeVibeId, onSelectVibe }: Vibe
         className="vibe-switcher__toggle"
         onClick={() => setIsOpen((value) => !value)}
         aria-expanded={isOpen}
+        aria-label="Switch vibe"
       >
-        {activeVibe.label}
+        <div className="vibe-switcher__icon">
+          <span className="vibe-switcher__icon-bar" />
+          <span className="vibe-switcher__icon-bar" />
+          <span className="vibe-switcher__icon-bar" />
+        </div>
       </button>
 
       {isOpen ? (
@@ -43,10 +51,7 @@ export default function VibeSwitcher({ vibes, activeVibeId, onSelectVibe }: Vibe
               key={vibe.id}
               type="button"
               className={vibe.id === activeVibeId ? 'vibe-switcher__button active' : 'vibe-switcher__button'}
-              onClick={() => {
-                onSelectVibe(vibe.id)
-                setIsOpen(false)
-              }}
+              onClick={() => handleSelect(vibe.id)}
             >
               {vibe.label}
             </button>
