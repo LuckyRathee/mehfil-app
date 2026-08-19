@@ -1,5 +1,4 @@
 interface SceneBackgroundProps {
-  label: string
   backgroundColor: string
   backgroundImage?: string
   backgroundVideo?: string
@@ -17,11 +16,23 @@ export default function SceneBackground({
       className="scene"
       style={{
         backgroundColor,
-        backgroundImage: backgroundImage ? `url(${backgroundImage})` : undefined,
       }}
     >
-      {backgroundVideo ? (
+      {/* Background Image Layer */}
+      {backgroundImage && (
+        <div
+          key={backgroundImage}
+          className="scene__image"
+          style={{
+            backgroundImage: `url(${backgroundImage})`,
+          }}
+        />
+      )}
+
+      {/* Background Video Layer */}
+      {backgroundVideo && (
         <video
+          key={backgroundVideo}
           className="scene__video"
           src={backgroundVideo}
           autoPlay
@@ -30,7 +41,8 @@ export default function SceneBackground({
           playsInline
           aria-hidden
         />
-      ) : null}
+      )}
+
       {children}
     </main>
   )

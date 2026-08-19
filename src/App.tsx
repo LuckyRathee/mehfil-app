@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import YouTube, { type YouTubeProps } from 'react-youtube'
 import TopBar from './components/TopBar'
 import SceneBackground from './components/SceneBackground'
@@ -18,18 +18,22 @@ export default function App() {
   const [playerTarget, setPlayerTarget] = useState<any>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
 
-  const audienceBase: Record<string, number> = {
+  const audienceBase = useMemo<Record<string, number>>(() => ({
     'chai-sutta': 860,
     'weedy-valley': 3240,
     panwadi: 1120,
-  }
+    'bus-driver': 1580,
+    saloon: 920,
+    'old-night-drives': 2340,
+  }), [])
+
   const [audienceCount, setAudienceCount] = useState<number>(
     audienceBase[currentVibe.id] ?? 1000
   )
 
   useEffect(() => {
     setAudienceCount(audienceBase[currentVibe.id] ?? 1000)
-  }, [currentVibe.id])
+  }, [currentVibe.id, audienceBase])
 
   useEffect(() => {
     const interval = window.setInterval(() => {
@@ -41,7 +45,7 @@ export default function App() {
     return () => window.clearInterval(interval)
   }, [])
 
-  const onPlayerReady: YouTubeProps['onReady'] = (event) => {
+  const onPlayerReady: YouTubeProps['onReady'] = useCallback((event) => {
     setPlayerTarget(event.target)
     event.target.playVideo()
     if (isMuted) {
@@ -49,9 +53,9 @@ export default function App() {
     } else {
       event.target.unMute()
     }
-  }
+  }, [isMuted])
 
-  const onStateChange: YouTubeProps['onStateChange'] = (event) => {
+  const onStateChange: YouTubeProps['onStateChange'] = useCallback((event) => {
     if (event.data === 1) {
       setLoadError(null)
       const videoData = event.target.getVideoData()
@@ -64,11 +68,11 @@ export default function App() {
         setTrackArtist(videoData.author || currentVibe.label)
       }
     }
-  }
+  }, [currentVibe.label])
 
-  const onPlayerError: YouTubeProps['onError'] = () => {
+  const onPlayerError: YouTubeProps['onError'] = useCallback(() => {
     setLoadError('Audio playback error')
-  }
+  }, [])
 
   useEffect(() => {
     if (!playerTarget) return
@@ -86,7 +90,7 @@ export default function App() {
     return () => clearInterval(interval)
   }, [playerTarget])
 
-  const handleSelectVibe = (vibeId: string) => {
+  const handleSelectVibe = useCallback((vibeId: string) => {
     const found = vibes.find((v) => v.id === vibeId)
     if (found) {
       setCurrentVibe(found)
@@ -101,9 +105,9 @@ export default function App() {
         })
       }
     }
-  }
+  }, [playerTarget])
 
-  const handleToggleMute = () => {
+  const handleToggleMute = useCallback(() => {
     if (playerTarget) {
       if (isMuted) {
         playerTarget.unMute()
@@ -112,7 +116,7 @@ export default function App() {
       }
     }
     setIsMuted(!isMuted)
-  }
+  }, [playerTarget, isMuted])
 
   useEffect(() => {
     if (videoRef.current) {
@@ -121,7 +125,7 @@ export default function App() {
     }
   }, [currentVibe])
 
-  const opts: YouTubeProps['opts'] = {
+  const opts: YouTubeProps['opts'] = useMemo(() => ({
     height: '0',
     width: '0',
     playerVars: {
@@ -131,13 +135,12 @@ export default function App() {
       controls: 0,
       disablekb: 1,
     },
-  }
+  }), [currentVibe.playlistId])
 
   return (
     <div className="app-shell">
       <TopBar />
       <SceneBackground
-        label={currentVibe.label}
         backgroundColor={currentVibe.backgroundColor}
         backgroundImage={currentVibe.backgroundImage}
         backgroundVideo={currentVibe.backgroundVideo}
