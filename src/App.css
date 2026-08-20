@@ -282,142 +282,192 @@ textarea {
   }
 }
 
-.player-bar {
+/* ── Radio Player ──────────────────────────────────────────────── */
+
+.radio-player {
+  /* [ left waveform ] [ center logo ] [ right waveform ]
+     No container. No background. No border. The waveform floats directly
+     over the scene; the artwork stays fully visible behind it. */
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto auto auto;
   align-items: center;
-  gap: clamp(8px, 1.5vw, 12px);
-  padding: clamp(8px, 1.2vw, 10px) clamp(10px, 1.5vw, 12px) clamp(8px, 1.2vw, 10px) clamp(8px, 1.2vw, 10px);
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 999px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 18px 30px rgba(0, 0, 0, 0.12);
-  min-width: 0;
-  max-width: min(620px, calc(100vw - 120px));
-  margin: 0 auto;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.player-bar:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.25);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 20px 36px rgba(0, 0, 0, 0.15);
-  transform: translateY(-1px);
-}
-
-.player-bar__disc {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.18), transparent 36%),
-    radial-gradient(circle at 70% 70%, rgba(255, 255, 255, 0.08), transparent 30%),
-    rgba(255, 255, 255, 0.04);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  gap: clamp(10px, 1.6vw, 22px);
   position: relative;
-  animation: spin 8s linear infinite;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.player-bar__disc::before,
-.player-bar__disc::after {
-  content: '';
-  position: absolute;
-  border-radius: 50%;
-}
-
-.player-bar__disc::before {
-  inset: 12px;
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.player-bar__disc-core {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.92);
-  position: absolute;
-  inset: 15px;
-  margin: auto;
-}
-
-.player-bar__track-info {
-  display: grid;
-  gap: 5px;
-  min-width: 0;
-}
-
-.player-bar__title {
-  font-weight: 700;
-  font-size: 0.82rem;
-  margin: 0;
-  line-height: 1.2;
-  transition: color 0.3s ease;
-}
-
-.player-bar:hover .player-bar__title {
-  color: rgba(255, 255, 255, 0.95);
-}
-
-.player-bar__artist {
-  opacity: 0.7;
-  font-size: 0.72rem;
-  line-height: 1.2;
-  transition: opacity 0.3s ease;
-}
-
-.player-bar:hover .player-bar__artist {
-  opacity: 0.85;
-}
-
-.player-bar__progress-track {
   width: 100%;
-  height: 6px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
-  overflow: hidden;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+  max-width: min(900px, calc(100vw - 40px));
+  margin: 0 auto;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  /* Reposition anytime with this data attribute:
+     data-position="bottom-center"  (default)
+     data-position="center"         (optional viewport-center variation)
+     The styles live here so both variants are just a rule away. */
 }
 
-.player-bar__progress-fill {
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.95));
-  transition: width 0.3s ease;
-  box-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
+/* Optional future variation — recenter the same player in the viewport. */
+.radio-player[data-position='center'] {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 20;
 }
 
-.player-bar__mute-button {
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: rgba(255, 255, 255, 0.08);
-  color: #f8f7f4;
-  border-radius: 999px;
-  padding: 8px 14px;
+.radio-player__wave {
+  display: block;
+  width: clamp(90px, 17vw, 240px);
+  height: clamp(64px, 11vh, 110px);
+  opacity: 0.95;
+  z-index: 1;
+}
+
+.radio-player__center {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.radio-player__halo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: clamp(120px, 13vw, 178px);
+  height: clamp(120px, 13vw, 178px);
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, currentColor 0%, rgba(255, 255, 255, 0.04) 42%, transparent 70%);
+  opacity: 0.1;
+  filter: blur(5px);
+  pointer-events: none;
+  transition: opacity 0.7s ease;
+}
+
+.radio-player__disc {
+  position: relative;
+  width: clamp(56px, 6vw, 80px);
+  height: clamp(56px, 6vw, 80px);
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
   cursor: pointer;
-  min-width: 82px;
-  font-size: 0.8rem;
-  font-weight: 500;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  -webkit-tap-highlight-color: transparent;
+  /* Disc base ring, reserved by the real vibe art later */
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 8px 28px rgba(0, 0, 0, 0.28);
+  outline: none;
+  will-change: transform;
+  transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1), filter 0.45s ease, box-shadow 0.45s ease;
 }
 
-.player-bar__mute-button:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.25);
+.radio-player__disc img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  user-select: none;
+  -webkit-user-select: none;
+  pointer-events: none;
+}
+
+.radio-player__disc-art {
+  will-change: transform;
+  /* rAF progressively set here; bounded by the round mask that shows */}
+
+.radio-player__disc:hover {
   transform: scale(1.05);
+  filter: brightness(1.08);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.16), 0 12px 36px rgba(0, 0, 0, 0.32);
 }
 
-.player-bar__mute-button:active {
-  transform: scale(0.98);
+.radio-player__disc:active {
+  transform: scale(1.01);
+}
+
+.radio-player__disc:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.65);
+  outline-offset: 4px;
+}
+
+.radio-player__meta {
+  display: grid;
+  gap: 2px;
+  max-width: min(280px, 60vw);
+}
+
+.radio-player__title {
+  font-size: clamp(0.72rem, 1vw, 0.9rem);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.35);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.radio-player__artist {
+  font-size: clamp(0.62rem, 0.85vw, 0.74rem);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.3);
+}
+
+.radio-player__status {
+  height: 10px;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+  transition: color 0.5s ease, opacity 0.5s ease;
+}
+
+.radio-player__disc[data-muted='true'] ~ .radio-player__meta,
+.radio-player__disc[data-muted='true'] ~ .radio-player__status {
+  opacity: 0.55;
+}
+
+/* Muted state — the player stays visually present but settles down. */
+.radio-player__disc[data-muted='true'] {
+  filter: saturate(0.7) brightness(0.85);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 6px 20px rgba(0, 0, 0, 0.22);
+}
+
+@media (max-width: 640px) {
+  .radio-player {
+    gap: 8px;
+  }
+
+  .radio-player__wave {
+    width: clamp(56px, 28vw, 120px);
+    height: clamp(44px, 8vh, 72px);
+  }
+
+  .radio-player__meta {
+    max-width: 52vw;
+  }
+
+  .radio-player__title {
+    font-size: 0.68rem;
+  }
+
+  .radio-player__artist {
+    font-size: 0.56rem;
+  }
+
+  .radio-player__status {
+    height: 8px;
+    font-size: 0.5rem;
+  }
 }
 
 .vibe-switcher {
@@ -606,20 +656,6 @@ textarea {
     font-size: clamp(2.6rem, 11vw, 4.2rem);
   }
 
-  .player-bar {
-    grid-template-columns: 1fr;
-    padding: 16px 18px;
-    max-width: min(620px, calc(100vw - 32px));
-  }
-
-  .player-bar__status {
-    text-align: left;
-  }
-
-  .player-bar__mute-button {
-    width: 100%;
-  }
-
   .vibe-switcher {
     right: max(12px, calc(16px + var(--safe-right)));
     bottom: max(12px, calc(16px + var(--safe-bottom)));
@@ -641,23 +677,6 @@ textarea {
 
   .scene__note {
     font-size: 0.95rem;
-  }
-
-  .player-bar__art {
-    width: 56px;
-    height: 56px;
-  }
-
-  .player-bar__info {
-    gap: 12px;
-  }
-
-  .player-bar__title {
-    font-size: 0.98rem;
-  }
-
-  .player-bar__artist {
-    font-size: 0.92rem;
   }
 
   .vibe-switcher__menu {
