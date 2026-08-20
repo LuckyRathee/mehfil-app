@@ -30,7 +30,7 @@ const vibes: Vibe[] = [
     logo: VIBE_LOGO_PLACEHOLDER,
     backgroundImage: '/images/chai-sutta.png',
     //backgroundVideo: '/images/chai-sutta.png',
-    playlistId: 'PLqUiEGO2-62v2C2yCmPHdRs-z_p3j7m7M',
+    playlistId: 'PL3pHzzJ_qh96fpA11KWFQ5h3nFfzGkIAR',
     tracks: [
       { title: 'Smoky Chai Beats', artist: 'Delhi Dusk', src: '/audio/chai-sutta-1.mp3' },
       { title: 'Station Murmurs', artist: 'Kolkata Loops', src: '/audio/chai-sutta-2.mp3' },
@@ -45,8 +45,8 @@ const vibes: Vibe[] = [
     colorTheme: '#6EE7E6',
     logo: VIBE_LOGO_PLACEHOLDER,
     backgroundImage: '/images/weedy-valley.png',
-    //backgroundVideo: '/images/weedy-valley.png',
-    playlistId: 'PLDPlCaMP9SofsDI4Fe1SYsOW5sLUoDxc5',
+    backgroundVideo: '/images/weedy-valley.png',
+    playlistId: 'PLCCTHlcjByiLW1E5cG9m_9WGnuXkhmfWj',
     tracks: [
       { title: 'Himalayan Drive', artist: 'Psy Lotus', src: '/audio/weedy-valley-1.mp3' },
       { title: 'Rave Fog', artist: 'Echo Nomad', src: '/audio/weedy-valley-2.mp3' },
@@ -54,14 +54,14 @@ const vibes: Vibe[] = [
     ],
   },
   {
-    id: 'theth-desi',
+    id: 'panwadi',
     label: 'Theth Desi',
     backgroundColor: '#611A1A',
     colorTheme: '#F97316',
     logo: VIBE_LOGO_PLACEHOLDER,
     backgroundImage: '/images/theth-desi.png',
     //backgroundVideo: '/videos/panwadi.mp4',
-    playlistId: 'RDMASZ7glxV2w',
+    playlistId: 'PL4zY2tyCYAI0UMnMRD_Tx1LW6fX1RDkB9',
     tracks: [
       { title: '90s Paan Talk', artist: 'Mumbai Nights', src: '/audio/panwadi-1.mp3' },
       { title: 'Tinted Glass', artist: 'Retro Sahib', src: '/audio/panwadi-2.mp3' },
@@ -75,8 +75,8 @@ const vibes: Vibe[] = [
     colorTheme: '#FFA726',
     logo: VIBE_LOGO_PLACEHOLDER,
     backgroundImage: '/images/bus-driver.png',
-    //backgroundVideo: '/images/bus-driver.png',
-    playlistId: 'PLFgquLnL59alW3xmYiWRaoz0oM3H17Lth',
+    backgroundVideo: '/images/bus-driver.png',
+    playlistId: 'PL0umg_TNpoZTTdZVIi5tfX69pRmoMFGna',
     tracks: [
       { title: 'Highway Rhythm', artist: 'Road Warriors', src: '/audio/bus-driver-1.mp3' },
       { title: 'Engine Hum', artist: 'Journey Beats', src: '/audio/bus-driver-2.mp3' },
@@ -90,8 +90,8 @@ const vibes: Vibe[] = [
     colorTheme: '#E91E63',
     logo: VIBE_LOGO_PLACEHOLDER,
     backgroundImage: '/images/saloon.png',
-    //backgroundVideo: '/images/saloon.png',
-    playlistId: 'PLFgquLnL59alW3xmYiWRaoz0oM3H17Lth',
+    backgroundVideo: '/images/saloon.png',
+    playlistId: 'PLy534Is5Apmt6J6Ia61liVa8_b11cC1ov',
     tracks: [
       { title: 'Mirror Talk', artist: 'Style Sessions', src: '/audio/saloon-1.mp3' },
       { title: 'Clipper Beats', artist: 'Barber Shop Groove', src: '/audio/saloon-2.mp3' },
@@ -103,10 +103,14 @@ const vibes: Vibe[] = [
     label: 'Old Night Drives',
     backgroundColor: '#0A0E1A',
     colorTheme: '#64B5F6',
+<<<<<<< HEAD
     logo: VIBE_LOGO_PLACEHOLDER,
     backgroundImage: '/images/old-night-drive.png',
+=======
+    backgroundImage: '/images/old-night-drives.png',
+>>>>>>> 0d6fd0ceccfa3c3332108f91158c4a37d58f5c74
     //backgroundVideo: '/images/Late_night_ride.png',
-    playlistId: 'PLFgquLnL59alW3xmYiWRaoz0oM3H17Lth',
+    playlistId: 'PL2n9PsUx_VHcVgOATXGVFFP9IXjYO6wMY',
     tracks: [
       { title: 'Midnight Highway', artist: 'Retrowave Dreams', src: '/audio/old-night-drives-1.mp3' },
       { title: 'Neon Memories', artist: '80s Nights', src: '/audio/old-night-drives-2.mp3' },
