@@ -4,11 +4,17 @@ export interface Track {
   src: string
 }
 
+// Placeholder vibe artwork. Swap this path for the real vibe logo/art
+// once it is ready — the player renders whatever lives at `vibe.logo`.
+export const VIBE_LOGO_PLACEHOLDER = '/images/vibe-placeholder.svg'
+
 export interface Vibe {
   id: string
   label: string
   backgroundColor: string
   colorTheme: string
+  /** Center artwork shown in the radio player (the vibe's logo/identity). */
+  logo: string
   backgroundImage?: string
   backgroundVideo?: string
   playlistId?: string // <-- Added this so TypeScript stops throwing errors
@@ -21,6 +27,7 @@ const vibes: Vibe[] = [
     label: 'Chai Sutta',
     backgroundColor: '#C8A887',
     colorTheme: '#7A5A3F',
+    logo: VIBE_LOGO_PLACEHOLDER,
     backgroundImage: '/images/chai-sutta.png',
     //backgroundVideo: '/images/chai-sutta.png',
     playlistId: 'PL3pHzzJ_qh96fpA11KWFQ5h3nFfzGkIAR',
@@ -36,6 +43,7 @@ const vibes: Vibe[] = [
     label: 'Weedy Valley',
     backgroundColor: '#1A123A',
     colorTheme: '#6EE7E6',
+    logo: VIBE_LOGO_PLACEHOLDER,
     backgroundImage: '/images/weedy-valley.png',
     backgroundVideo: '/images/weedy-valley.png',
     playlistId: 'PLCCTHlcjByiLW1E5cG9m_9WGnuXkhmfWj',
@@ -50,6 +58,7 @@ const vibes: Vibe[] = [
     label: 'Theth Desi',
     backgroundColor: '#611A1A',
     colorTheme: '#F97316',
+    logo: VIBE_LOGO_PLACEHOLDER,
     backgroundImage: '/images/theth-desi.png',
     //backgroundVideo: '/videos/panwadi.mp4',
     playlistId: 'PL4zY2tyCYAI0UMnMRD_Tx1LW6fX1RDkB9',
@@ -64,6 +73,7 @@ const vibes: Vibe[] = [
     label: 'Bus Driver',
     backgroundColor: '#2C1810',
     colorTheme: '#FFA726',
+    logo: VIBE_LOGO_PLACEHOLDER,
     backgroundImage: '/images/bus-driver.png',
     backgroundVideo: '/images/bus-driver.png',
     playlistId: 'PL0umg_TNpoZTTdZVIi5tfX69pRmoMFGna',
@@ -78,6 +88,7 @@ const vibes: Vibe[] = [
     label: 'Saloon',
     backgroundColor: '#1C1C28',
     colorTheme: '#E91E63',
+    logo: VIBE_LOGO_PLACEHOLDER,
     backgroundImage: '/images/saloon.png',
     backgroundVideo: '/images/saloon.png',
     playlistId: 'PLy534Is5Apmt6J6Ia61liVa8_b11cC1ov',
@@ -92,7 +103,8 @@ const vibes: Vibe[] = [
     label: 'Old Night Drives',
     backgroundColor: '#0A0E1A',
     colorTheme: '#64B5F6',
-    backgroundImage: '/images/old-night-drives.png',
+    logo: VIBE_LOGO_PLACEHOLDER,
+    backgroundImage: '/images/old-night-drive.png',
     //backgroundVideo: '/images/Late_night_ride.png',
     playlistId: 'PL2n9PsUx_VHcVgOATXGVFFP9IXjYO6wMY',
     tracks: [

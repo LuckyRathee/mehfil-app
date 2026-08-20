@@ -3,7 +3,7 @@ import YouTube, { type YouTubeProps } from 'react-youtube'
 import TopBar from './components/TopBar'
 import SceneBackground from './components/SceneBackground'
 import VibeSwitcher from './components/VibeSwitcher'
-import PlayerBar from './components/PlayerBar'
+import RadioPlayer from './components/RadioPlayer'
 import DonationButton from './components/DonationButton'
 import vibes, { type Vibe } from './vibes'
 import trackDurations from './data/trackDurations.json'
@@ -17,6 +17,7 @@ const DRIFT_TOLERANCE_SECONDS = 3 // reseek if off by more than this
 export default function App() {
   const [currentVibe, setCurrentVibe] = useState<Vibe>(vibes[0])
   const [isMuted, setIsMuted] = useState(false)
+  
   const [progress, setProgress] = useState(0)
   const [trackTitle, setTrackTitle] = useState('Tuning in...')
   const [trackArtist, setTrackArtist] = useState('Mehfil Radio')
@@ -83,7 +84,8 @@ export default function App() {
     }
     tuneIntoVibe(currentVibe, event.target)
   }, [isMuted, currentVibe, tuneIntoVibe])
-const onStateChange: YouTubeProps['onStateChange'] = useCallback((event) => {
+
+  const onStateChange: YouTubeProps['onStateChange'] = useCallback((event) => {
     if (event.data === 1) {
       // playing
       setLoadError(null)
@@ -159,6 +161,7 @@ const onStateChange: YouTubeProps['onStateChange'] = useCallback((event) => {
       setCurrentVibe(found)
       setProgress(0)
       if (playerTarget) {
+        // Try live-synced playback first
         tuneIntoVibe(found, playerTarget)
       }
     }
@@ -196,11 +199,12 @@ const onStateChange: YouTubeProps['onStateChange'] = useCallback((event) => {
         backgroundVideo={currentVibe.backgroundVideo}
       >
         <div className="scene__bottom">
-          <PlayerBar
+          <RadioPlayer
+            logo={currentVibe.logo}
+            accentColor={currentVibe.colorTheme}
             title={trackTitle}
             artist={trackArtist}
             isMuted={isMuted}
-            progress={progress}
             onToggleMute={handleToggleMute}
           />
           {loadError && (
