@@ -18,7 +18,7 @@ export default function App() {
   const [currentVibe, setCurrentVibe] = useState<Vibe>(vibes[0])
   const [isMuted, setIsMuted] = useState(false)
   
-  const [progress, setProgress] = useState(0)
+  //const [progress, setProgress] = useState(0)
   const [trackTitle, setTrackTitle] = useState('Tuning in...')
   const [trackArtist, setTrackArtist] = useState('Mehfil Radio')
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -121,10 +121,10 @@ export default function App() {
     const interval = setInterval(() => {
       try {
         if (playerTarget.getPlayerState && playerTarget.getPlayerState() === 1) {
-          const currentTime = playerTarget.getCurrentTime() || 0
+          //const currentTime = playerTarget.getCurrentTime() || 0
           const duration = playerTarget.getDuration() || 1
           if (duration > 0) {
-            setProgress((currentTime / duration) * 100)
+            //setProgress((currentTime / duration) * 100)
           }
         }
       } catch (e) {}
@@ -159,7 +159,7 @@ export default function App() {
     const found = vibes.find((v) => v.id === vibeId)
     if (found) {
       setCurrentVibe(found)
-      setProgress(0)
+      //setProgress(0)
       if (playerTarget) {
         // Try live-synced playback first
         tuneIntoVibe(found, playerTarget)
