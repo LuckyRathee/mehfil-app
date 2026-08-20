@@ -4,6 +4,7 @@ import TopBar from './components/TopBar'
 import SceneBackground from './components/SceneBackground'
 import VibeSwitcher from './components/VibeSwitcher'
 import PlayerBar from './components/PlayerBar'
+import DonationButton from './components/DonationButton'
 import vibes, { type Vibe } from './vibes'
 import trackDurations from './data/trackDurations.json'
 import { RADIO_EPOCH } from './data/radioConfig'
@@ -227,6 +228,7 @@ const onStateChange: YouTubeProps['onStateChange'] = useCallback((event) => {
           onError={onPlayerError}
         />
       </div>
+      <DonationButton />
     </div>
   )
 }
