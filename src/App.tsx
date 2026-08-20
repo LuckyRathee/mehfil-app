@@ -84,7 +84,8 @@ export default function App() {
     }
     tuneIntoVibe(currentVibe, event.target)
   }, [isMuted, currentVibe, tuneIntoVibe])
-const onStateChange: YouTubeProps['onStateChange'] = useCallback((event) => {
+
+  const onStateChange: YouTubeProps['onStateChange'] = useCallback((event) => {
     if (event.data === 1) {
       // playing
       setLoadError(null)
@@ -160,6 +161,7 @@ const onStateChange: YouTubeProps['onStateChange'] = useCallback((event) => {
       setCurrentVibe(found)
       setProgress(0)
       if (playerTarget) {
+        // Try live-synced playback first
         tuneIntoVibe(found, playerTarget)
       }
     }
