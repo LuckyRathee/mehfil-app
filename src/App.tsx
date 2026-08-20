@@ -3,7 +3,7 @@ import YouTube, { type YouTubeProps } from 'react-youtube'
 import TopBar from './components/TopBar'
 import SceneBackground from './components/SceneBackground'
 import VibeSwitcher from './components/VibeSwitcher'
-import PlayerBar from './components/PlayerBar'
+import RadioPlayer from './components/RadioPlayer'
 import DonationButton from './components/DonationButton'
 import vibes, { type Vibe } from './vibes'
 import './App.css'
@@ -11,7 +11,6 @@ import './App.css'
 export default function App() {
   const [currentVibe, setCurrentVibe] = useState<Vibe>(vibes[0])
   const [isMuted, setIsMuted] = useState(false)
-  const [progress, setProgress] = useState(0)
   const [trackTitle, setTrackTitle] = useState('Shut Up and Listen')
   const [trackArtist, setTrackArtist] = useState('Mehfil Radio')
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -75,27 +74,10 @@ export default function App() {
     setLoadError('Audio playback error')
   }, [])
 
-  useEffect(() => {
-    if (!playerTarget) return
-    const interval = setInterval(() => {
-      try {
-        if (playerTarget.getPlayerState && playerTarget.getPlayerState() === 1) {
-          const currentTime = playerTarget.getCurrentTime() || 0
-          const duration = playerTarget.getDuration() || 1
-          if (duration > 0) {
-            setProgress((currentTime / duration) * 100)
-          }
-        }
-      } catch (e) {}
-    }, 1000)
-    return () => clearInterval(interval)
-  }, [playerTarget])
-
   const handleSelectVibe = useCallback((vibeId: string) => {
     const found = vibes.find((v) => v.id === vibeId)
     if (found) {
       setCurrentVibe(found)
-      setProgress(0)
       setLoadError(null)
       if (playerTarget && found.playlistId) {
         playerTarget.loadPlaylist({
@@ -147,11 +129,12 @@ export default function App() {
         backgroundVideo={currentVibe.backgroundVideo}
       >
         <div className="scene__bottom">
-          <PlayerBar
+          <RadioPlayer
+            logo={currentVibe.logo}
+            accentColor={currentVibe.colorTheme}
             title={trackTitle}
             artist={trackArtist}
             isMuted={isMuted}
-            progress={progress}
             onToggleMute={handleToggleMute}
           />
           {loadError && (
