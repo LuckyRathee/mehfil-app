@@ -103,12 +103,8 @@ const vibes: Vibe[] = [
     label: 'Old Night Drives',
     backgroundColor: '#0A0E1A',
     colorTheme: '#64B5F6',
-<<<<<<< HEAD
     logo: VIBE_LOGO_PLACEHOLDER,
     backgroundImage: '/images/old-night-drive.png',
-=======
-    backgroundImage: '/images/old-night-drives.png',
->>>>>>> 0d6fd0ceccfa3c3332108f91158c4a37d58f5c74
     //backgroundVideo: '/images/Late_night_ride.png',
     playlistId: 'PL2n9PsUx_VHcVgOATXGVFFP9IXjYO6wMY',
     tracks: [
