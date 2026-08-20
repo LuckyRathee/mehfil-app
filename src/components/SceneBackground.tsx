@@ -1,4 +1,5 @@
 interface SceneBackgroundProps {
+  label: string
   backgroundColor: string
   backgroundImage?: string
   backgroundVideo?: string
@@ -6,6 +7,7 @@ interface SceneBackgroundProps {
 }
 
 export default function SceneBackground({
+  label: _label,
   backgroundColor,
   backgroundImage,
   backgroundVideo,
