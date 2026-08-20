@@ -50,8 +50,8 @@ const vibes: Vibe[] = [
     label: 'Theth Desi',
     backgroundColor: '#611A1A',
     colorTheme: '#F97316',
-    backgroundImage: '/images/panwadi.png',
-    backgroundVideo: '/videos/panwadi.mp4',
+    backgroundImage: '/images/theth-desi.png',
+    //backgroundVideo: '/videos/panwadi.mp4',
     playlistId: 'PL4zY2tyCYAI0UMnMRD_Tx1LW6fX1RDkB9',
     tracks: [
       { title: '90s Paan Talk', artist: 'Mumbai Nights', src: '/audio/panwadi-1.mp3' },
@@ -92,8 +92,8 @@ const vibes: Vibe[] = [
     label: 'Old Night Drives',
     backgroundColor: '#0A0E1A',
     colorTheme: '#64B5F6',
-    backgroundImage: '/images/Late_night_ride.png',
-    backgroundVideo: '/images/Late_night_ride.png',
+    backgroundImage: '/images/old-night-drives.png',
+    //backgroundVideo: '/images/Late_night_ride.png',
     playlistId: 'PL2n9PsUx_VHcVgOATXGVFFP9IXjYO6wMY',
     tracks: [
       { title: 'Midnight Highway', artist: 'Retrowave Dreams', src: '/audio/old-night-drives-1.mp3' },
