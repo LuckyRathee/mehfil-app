@@ -17,12 +17,7 @@ const DRIFT_TOLERANCE_SECONDS = 3 // reseek if off by more than this
 export default function App() {
   const [currentVibe, setCurrentVibe] = useState<Vibe>(vibes[0])
   const [isMuted, setIsMuted] = useState(false)
-<<<<<<< HEAD
-  const [trackTitle, setTrackTitle] = useState('Shut Up and Listen')
-=======
-  const [progress, setProgress] = useState(0)
   const [trackTitle, setTrackTitle] = useState('Tuning in...')
->>>>>>> 0d6fd0ceccfa3c3332108f91158c4a37d58f5c74
   const [trackArtist, setTrackArtist] = useState('Mehfil Radio')
   const [loadError, setLoadError] = useState<string | null>(null)
 
@@ -87,7 +82,8 @@ export default function App() {
     }
     tuneIntoVibe(currentVibe, event.target)
   }, [isMuted, currentVibe, tuneIntoVibe])
-const onStateChange: YouTubeProps['onStateChange'] = useCallback((event) => {
+
+  const onStateChange: YouTubeProps['onStateChange'] = useCallback((event) => {
     if (event.data === 1) {
       // playing
       setLoadError(null)
@@ -117,24 +113,6 @@ const onStateChange: YouTubeProps['onStateChange'] = useCallback((event) => {
     }
   }, [currentVibe, playerTarget, tuneIntoVibe])
 
-<<<<<<< HEAD
-=======
-  // progress bar reflects position WITHIN the current track
-  useEffect(() => {
-    if (!playerTarget) return
-    const interval = setInterval(() => {
-      try {
-        if (playerTarget.getPlayerState && playerTarget.getPlayerState() === 1) {
-          const currentTime = playerTarget.getCurrentTime() || 0
-          const duration = playerTarget.getDuration() || 1
-          if (duration > 0) {
-            setProgress((currentTime / duration) * 100)
-          }
-        }
-      } catch (e) {}
-    }, 1000)
-    return () => clearInterval(interval)
-  }, [playerTarget])
 
   // periodic drift correction — keeps everyone truly "live"
   useEffect(() => {
@@ -159,25 +137,22 @@ const onStateChange: YouTubeProps['onStateChange'] = useCallback((event) => {
     return () => clearInterval(interval)
   }, [playerTarget, currentVibe, getTracksForVibe, tuneIntoVibe])
 
->>>>>>> 0d6fd0ceccfa3c3332108f91158c4a37d58f5c74
   const handleSelectVibe = useCallback((vibeId: string) => {
     const found = vibes.find((v) => v.id === vibeId)
     if (found) {
       setCurrentVibe(found)
-<<<<<<< HEAD
-      setLoadError(null)
-      if (playerTarget && found.playlistId) {
-        playerTarget.loadPlaylist({
-          list: found.playlistId,
-          listType: 'playlist',
-          index: 0,
-          startSeconds: 0,
-        })
-=======
-      setProgress(0)
       if (playerTarget) {
+        // Try live-synced playback first
         tuneIntoVibe(found, playerTarget)
->>>>>>> 0d6fd0ceccfa3c3332108f91158c4a37d58f5c74
+        // Fallback to playlist if available (more reliable for YouTube)
+        if (found.playlistId) {
+          playerTarget.loadPlaylist({
+            list: found.playlistId,
+            listType: 'playlist',
+            index: 0,
+            startSeconds: 0,
+          })
+        }
       }
     }
   }, [playerTarget, tuneIntoVibe])
