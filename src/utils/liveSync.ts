@@ -1,12 +1,4 @@
-export interface TrackInfo {
-  videoId: string
-  duration: number // seconds
-}
-
-export interface PlaybackPosition {
-  trackIndex: number
-  offsetSeconds: number
-}
+import type { TrackInfo, PlaybackPosition } from '../vibes/types'
 
 export function getCurrentPlaybackPosition(
   tracks: TrackInfo[],

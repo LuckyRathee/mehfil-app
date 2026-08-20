@@ -5,20 +5,21 @@ import SceneBackground from './components/SceneBackground'
 import VibeSwitcher from './components/VibeSwitcher'
 import RadioPlayer from './components/RadioPlayer'
 import DonationButton from './components/DonationButton'
-import vibes, { type Vibe } from './vibes'
-import trackDurations from './data/trackDurations.json'
+import { getAllVibes, preloadVibe } from './vibes'
+import { getTrackDurations, preloadTrackDurations } from './data/trackDurations'
 import { RADIO_EPOCH } from './data/radioConfig'
-import { getCurrentPlaybackPosition, type TrackInfo } from './utils/liveSync'
+import { getCurrentPlaybackPosition } from './utils/liveSync'
+import type { Vibe, TrackInfo } from './vibes/types'
 import './App.css'
 
 const RESYNC_INTERVAL_MS = 30000 // recheck drift every 30s
 const DRIFT_TOLERANCE_SECONDS = 3 // reseek if off by more than this
 
 export default function App() {
-  const [currentVibe, setCurrentVibe] = useState<Vibe>(vibes[0])
+  const [currentVibe, setCurrentVibe] = useState<Vibe | null>(null)
+  const [vibes, setVibes] = useState<Vibe[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const [isMuted, setIsMuted] = useState(false)
-  
-  //const [progress, setProgress] = useState(0)
   const [trackTitle, setTrackTitle] = useState('Tuning in...')
   const [trackArtist, setTrackArtist] = useState('Mehfil Radio')
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -34,14 +35,31 @@ export default function App() {
     saloon: 920,
     'old-night-drives': 2340,
   }
-  const [audienceCount, setAudienceCount] = useState<number>(
-    audienceBase[currentVibe.id] ?? 1000
-  )
+  const [audienceCount, setAudienceCount] = useState<number>(1000)
 
+  // Load all vibes on mount
   useEffect(() => {
-    setAudienceCount(audienceBase[currentVibe.id] ?? 1000)
-  }, [currentVibe.id])
+    let mounted = true
+    getAllVibes().then((loadedVibes: Vibe[]) => {
+      if (mounted) {
+        setVibes(loadedVibes)
+        if (loadedVibes.length > 0) {
+          setCurrentVibe(loadedVibes[0])
+        }
+        setIsLoading(false)
+      }
+    })
+    return () => { mounted = false }
+  }, [])
 
+  // Update audience count when vibe changes
+  useEffect(() => {
+    if (currentVibe) {
+      setAudienceCount(audienceBase[currentVibe.id] ?? 1000)
+    }
+  }, [currentVibe?.id])
+
+  // Simulate audience fluctuation
   useEffect(() => {
     const interval = window.setInterval(() => {
       setAudienceCount((count) => {
@@ -52,12 +70,14 @@ export default function App() {
     return () => window.clearInterval(interval)
   }, [])
 
-  const getTracksForVibe = useCallback((vibeId: string): TrackInfo[] =>
-    (trackDurations as Record<string, TrackInfo[]>)[vibeId] ?? [], [trackDurations])
+  // Load track durations for a vibe on demand
+  const getTracksForVibe = useCallback(async (vibeId: string): Promise<TrackInfo[]> => {
+    return getTrackDurations(vibeId)
+  }, [])
 
   // Load whatever should currently be playing for a vibe, live-synced
-  const tuneIntoVibe = useCallback((vibe: Vibe, player: any) => {
-    const tracks = getTracksForVibe(vibe.id)
+  const tuneIntoVibe = useCallback(async (vibe: Vibe, player: any) => {
+    const tracks = await getTracksForVibe(vibe.id)
     const position = getCurrentPlaybackPosition(tracks, RADIO_EPOCH)
 
     if (!position || !tracks.length) {
@@ -82,8 +102,16 @@ export default function App() {
     } else {
       event.target.unMute()
     }
-    tuneIntoVibe(currentVibe, event.target)
-  }, [isMuted, currentVibe, tuneIntoVibe])
+    if (currentVibe && currentVibe.playlistId) {
+      // Use playlist for initial load - more reliable for YouTube
+      event.target.loadPlaylist({
+        list: currentVibe.playlistId,
+        listType: 'playlist',
+        index: 0,
+        startSeconds: 0,
+      })
+    }
+  }, [isMuted, currentVibe])
 
   const onStateChange: YouTubeProps['onStateChange'] = useCallback((event) => {
     if (event.data === 1) {
@@ -96,47 +124,32 @@ export default function App() {
           .replace(/\(Official.*?\)/gi, '')
           .trim()
         setTrackTitle(cleanTitle)
-        setTrackArtist(videoData.author || currentVibe.label)
+        setTrackArtist(videoData.author || currentVibe?.label || 'Mehfil Radio')
       }
     }
 
-    if (event.data === 0) {
-      // ended -> resync from epoch rather than blindly advancing,
-      // this self-corrects any drift from load delays etc.
-      tuneIntoVibe(currentVibe, event.target)
-    }
-  }, [currentVibe.label, currentVibe, tuneIntoVibe])
+    // Don't call tuneIntoVibe on video end - playlist handles next video automatically
+    // if (event.data === 0) { ... }
+  }, [currentVibe?.label, currentVibe])
 
   const onPlayerError: YouTubeProps['onError'] = useCallback(() => {
     setLoadError('Audio playback error')
     // try to recover by resyncing rather than getting stuck
-    if (playerTarget) {
-      tuneIntoVibe(currentVibe, playerTarget)
+    if (playerTarget && currentVibe && currentVibe.playlistId) {
+      playerTarget.loadPlaylist({
+        list: currentVibe.playlistId,
+        listType: 'playlist',
+        index: 0,
+        startSeconds: 0,
+      })
     }
-  }, [currentVibe, playerTarget, tuneIntoVibe])
-
-  // progress bar reflects position WITHIN the current track
-  useEffect(() => {
-    if (!playerTarget) return
-    const interval = setInterval(() => {
-      try {
-        if (playerTarget.getPlayerState && playerTarget.getPlayerState() === 1) {
-          //const currentTime = playerTarget.getCurrentTime() || 0
-          const duration = playerTarget.getDuration() || 1
-          if (duration > 0) {
-            //setProgress((currentTime / duration) * 100)
-          }
-        }
-      } catch (e) {}
-    }, 1000)
-    return () => clearInterval(interval)
-  }, [playerTarget])
+  }, [currentVibe, playerTarget])
 
   // periodic drift correction — keeps everyone truly "live"
   useEffect(() => {
-    if (!playerTarget) return
-    const interval = setInterval(() => {
-      const tracks = getTracksForVibe(currentVibe.id)
+    if (!playerTarget || !currentVibe) return
+    const interval = setInterval(async () => {
+      const tracks = await getTracksForVibe(currentVibe.id)
       const expected = getCurrentPlaybackPosition(tracks, RADIO_EPOCH)
       if (!expected) return
 
@@ -155,17 +168,26 @@ export default function App() {
     return () => clearInterval(interval)
   }, [playerTarget, currentVibe, getTracksForVibe, tuneIntoVibe])
 
-  const handleSelectVibe = useCallback((vibeId: string) => {
+  const handleSelectVibe = useCallback(async (vibeId: string) => {
+    // Prevent reloading if already on this vibe
+    if (currentVibe?.id === vibeId) {
+      return
+    }
+    
     const found = vibes.find((v) => v.id === vibeId)
     if (found) {
       setCurrentVibe(found)
-      //setProgress(0)
-      if (playerTarget) {
-        // Try live-synced playback first
-        tuneIntoVibe(found, playerTarget)
+      if (playerTarget && found.playlistId) {
+        // Use playlist as primary method - more reliable for YouTube
+        playerTarget.loadPlaylist({
+          list: found.playlistId,
+          listType: 'playlist',
+          index: 0,
+          startSeconds: 0,
+        })
       }
     }
-  }, [playerTarget, tuneIntoVibe])
+  }, [vibes, playerTarget, currentVibe?.id])
 
   const handleToggleMute = useCallback(() => {
     if (playerTarget) {
@@ -178,6 +200,12 @@ export default function App() {
     setIsMuted(!isMuted)
   }, [playerTarget, isMuted])
 
+  // Preload vibe on hover for faster switching
+  const handleVibeHover = useCallback((vibeId: string) => {
+    preloadVibe(vibeId)
+    preloadTrackDurations(vibeId)
+  }, [])
+
   const opts: YouTubeProps['opts'] = useMemo(() => ({
     height: '0',
     width: '0',
@@ -189,19 +217,30 @@ export default function App() {
     },
   }), [])
 
+  if (isLoading) {
+    return (
+      <div className="app-shell">
+        <div className="loading-screen" role="status" aria-label="Loading Mehfil Radio">
+          <div className="loading-spinner" />
+          <p>Loading vibes...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="app-shell">
       <TopBar />
       <SceneBackground
-        label={currentVibe.label}
-        backgroundColor={currentVibe.backgroundColor}
-        backgroundImage={currentVibe.backgroundImage}
-        backgroundVideo={currentVibe.backgroundVideo}
+        label={currentVibe?.label || ''}
+        backgroundColor={currentVibe?.backgroundColor || '#000'}
+        backgroundImage={currentVibe?.backgroundImage}
+        backgroundVideo={currentVibe?.backgroundVideo}
       >
         <div className="scene__bottom">
           <RadioPlayer
-            logo={currentVibe.logo}
-            accentColor={currentVibe.colorTheme}
+            logo={currentVibe?.logo || '/images/vibe-placeholder.svg'}
+            accentColor={currentVibe?.colorTheme || '#fff'}
             title={trackTitle}
             artist={trackArtist}
             isMuted={isMuted}
@@ -215,8 +254,9 @@ export default function App() {
         </div>
         <VibeSwitcher
           vibes={vibes}
-          activeVibeId={currentVibe.id}
+          activeVibeId={currentVibe?.id || ''}
           onSelectVibe={handleSelectVibe}
+          onVibeHover={handleVibeHover}
         />
         <div className="audience-bubble" aria-label="Live audience count">
           <div className="audience-bubble__dot" />
