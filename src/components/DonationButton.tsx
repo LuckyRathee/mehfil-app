@@ -1,4 +1,3 @@
-import { useState } from 'react'
 
 interface ChaiOption {
   name: string
@@ -13,34 +12,26 @@ const chaiOptions: ChaiOption[] = [
   { name: 'Kesar Chai', price: 99, description: 'Premium saffron chai' },
 ]
 
-export default function DonationButton() {
-  const [isOpen, setIsOpen] = useState(false)
+interface DonationButtonProps {
+  isOpen: boolean
+  onClose: () => void
+}
 
+export default function DonationButton({ isOpen, onClose }: DonationButtonProps) {
   const handleChaiSelect = (chai: ChaiOption) => {
     // TODO: Integrate with Razorpay
     // For now, show alert with selected chai
     alert(`Selected: ${chai.name} - ₹${chai.price}\n\nRazorpay integration coming soon!`)
-    setIsOpen(false)
+    onClose()
   }
 
   return (
     <>
-      {/* Floating Donation Button */}
-      <button
-        className="donation-button"
-        onClick={() => setIsOpen(true)}
-        aria-label="Support us"
-        title="Chai on you :)"
-      >
-        <span className="donation-button__icon">☕</span>
-        <span className="donation-button__text">Chai on you :)</span>
-      </button>
-
       {/* Donation Modal */}
       {isOpen && (
-        <div className="donation-modal-overlay" onClick={() => setIsOpen(false)} role="dialog" aria-modal="true" aria-labelledby="donation-title">
+        <div className="donation-modal-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="donation-title">
           <div className="donation-modal" onClick={(e) => e.stopPropagation()}>
-            <button className="donation-modal__close" onClick={() => setIsOpen(false)} aria-label="Close donation modal">
+            <button className="donation-modal__close" onClick={onClose} aria-label="Close donation modal">
               ✕
             </button>
             <h2 id="donation-title" className="donation-modal__title">Chai on you :) ☕</h2>
