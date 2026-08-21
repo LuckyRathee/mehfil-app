@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { Vibe } from '../vibes'
+import type { Vibe } from '../vibes/types'
 
 interface VibeSwitcherProps {
   vibes: Vibe[]
   activeVibeId: string
   onSelectVibe: (vibeId: string) => void
+  onVibeHover?: (vibeId: string) => void
 }
 
-export default function VibeSwitcher({ vibes, activeVibeId, onSelectVibe }: VibeSwitcherProps) {
+export default function VibeSwitcher({ vibes, activeVibeId, onSelectVibe, onVibeHover }: VibeSwitcherProps) {
   const [isOpen, setIsOpen] = useState(false)
   const wrapperRef = useRef<HTMLDivElement | null>(null)
 
@@ -52,6 +53,7 @@ export default function VibeSwitcher({ vibes, activeVibeId, onSelectVibe }: Vibe
               type="button"
               className={vibe.id === activeVibeId ? 'vibe-switcher__button active' : 'vibe-switcher__button'}
               onClick={() => handleSelect(vibe.id)}
+              onMouseEnter={() => onVibeHover?.(vibe.id)}
             >
               {vibe.label}
             </button>
