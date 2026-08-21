@@ -25,4 +25,5 @@ export interface Vibe {
 export interface PlaybackPosition {
   trackIndex: number
   offsetSeconds: number
+  isStaticWindow: boolean
 }

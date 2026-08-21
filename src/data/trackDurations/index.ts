@@ -1,7 +1,7 @@
 import type { TrackInfo } from '../../vibes/types'
 
 // Lazy-loaded track duration modules - only loads when needed
-const trackDurationModules: Record<string, () => Promise<TrackInfo[]>> = {
+const trackDurationModules: Record<string, () => Promise<any>> = {
   'chai-sutta': () => import('./chai-sutta.json'),
   'weedy-valley': () => import('./weedy-valley.json'),
   'panwadi': () => import('./panwadi.json'),
@@ -27,7 +27,8 @@ export async function getTrackDurations(vibeId: string): Promise<TrackInfo[]> {
   }
 
   try {
-    const tracks = await loader()
+    const module = await loader()
+    const tracks = module.default
     trackDurationCache[vibeId] = tracks
     return tracks
   } catch (error) {
@@ -44,7 +45,8 @@ export function preloadTrackDurations(vibeId: string): Promise<TrackInfo[]> | nu
   if (!loader) {
     return null
   }
-  return loader().then(tracks => {
+  return loader().then(module => {
+    const tracks = module.default
     trackDurationCache[vibeId] = tracks
     return tracks
   })
