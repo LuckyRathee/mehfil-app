@@ -8,7 +8,6 @@ export const weedyValleyVibe: Vibe = {
   colorTheme: '#6EE7E6',
   logo: '/images/vibe-placeholder.svg',
   backgroundImage: '/images/weedy-valley.png',
-  backgroundVideo: '/images/weedy-valley.png',
   playlistId: playlistIds['weedy-valley'],
   tracks: [
     { title: 'Himalayan Drive', artist: 'Psy Lotus', src: '/audio/weedy-valley-1.mp3' },

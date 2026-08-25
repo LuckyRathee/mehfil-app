@@ -17,7 +17,6 @@ export interface Vibe {
   /** Center artwork shown in the radio player (the vibe's logo/identity). */
   logo: string
   backgroundImage?: string
-  backgroundVideo?: string
   playlistId?: string
   tracks: Track[]
 }

@@ -8,7 +8,6 @@ export const panwadiVibe: Vibe = {
   colorTheme: '#F97316',
   logo: '/images/vibe-placeholder.svg',
   backgroundImage: '/images/theth-desi.png',
-  // backgroundVideo: '/videos/panwadi.mp4',
   playlistId: playlistIds['panwadi'],
   tracks: [
     { title: '90s Paan Talk', artist: 'Mumbai Nights', src: '/audio/panwadi-1.mp3' },

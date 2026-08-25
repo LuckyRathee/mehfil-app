@@ -8,7 +8,6 @@ export const saloonVibe: Vibe = {
   colorTheme: '#E91E63',
   logo: '/images/vibe-placeholder.svg',
   backgroundImage: '/images/saloon.png',
-  backgroundVideo: '/images/saloon.png',
   playlistId: playlistIds['saloon'],
   tracks: [
     { title: 'Mirror Talk', artist: 'Style Sessions', src: '/audio/saloon-1.mp3' },
