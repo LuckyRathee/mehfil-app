@@ -114,11 +114,15 @@ async function main() {
     }
   }
 
-  fs.writeFileSync(
-    'src/data/trackDurations.json',
-    JSON.stringify(output, null, 2)
-  )
-  console.log('\n💾 Written to src/data/trackDurations.json')
+  const outputDir = 'src/data/trackDurations'
+  fs.mkdirSync(outputDir, { recursive: true })
+  for (const [vibeId, tracks] of Object.entries(output)) {
+    fs.writeFileSync(
+      `${outputDir}/${vibeId}.json`,
+      JSON.stringify(tracks, null, 2) + '\n'
+    )
+  }
+  console.log(`\n💾 Written ${Object.keys(output).length} duration files to ${outputDir}`)
 }
 
 main()

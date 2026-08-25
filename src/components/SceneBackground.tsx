@@ -2,7 +2,6 @@ interface SceneBackgroundProps {
   label: string
   backgroundColor: string
   backgroundImage?: string
-  backgroundVideo?: string
   children?: React.ReactNode
 }
 
@@ -10,7 +9,6 @@ export default function SceneBackground({
   label: _label,
   backgroundColor,
   backgroundImage,
-  backgroundVideo,
   children,
 }: SceneBackgroundProps) {
   return (
@@ -28,20 +26,6 @@ export default function SceneBackground({
           style={{
             backgroundImage: `url(${backgroundImage})`,
           }}
-        />
-      )}
-
-      {/* Background Video Layer */}
-      {backgroundVideo && (
-        <video
-          key={backgroundVideo}
-          className="scene__video"
-          src={backgroundVideo}
-          autoPlay
-          loop
-          muted
-          playsInline
-          aria-hidden
         />
       )}
 
