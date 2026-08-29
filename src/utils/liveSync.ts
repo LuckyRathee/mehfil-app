@@ -1,6 +1,6 @@
 import type { TrackInfo, PlaybackPosition } from '../vibes/types'
 
-export const GAP_DURATION_SECONDS = 10 // 10-second analog sync window
+export const GAP_DURATION_SECONDS = 2.5 // 2.5-second crossfade transition window
 
 export function getCurrentPlaybackPosition(
   tracks: TrackInfo[],

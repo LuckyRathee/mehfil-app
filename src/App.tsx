@@ -39,6 +39,7 @@ export default function App() {
 
   const [playerTarget, setPlayerTarget] = useState<YouTubePlayer | null>(null)
   const currentTrackIndexRef = useRef<number>(0)
+  const nextTrackQueuedRef = useRef<boolean>(false)
   const activeVibeIdRef = useRef<string | null>(null)
   const hasEnteredRadioRef = useRef(false)
   const isMutedRef = useRef<boolean>(true)
@@ -323,6 +324,19 @@ export default function App() {
           playerTarget.pauseVideo()
           setTrackTitle('Tuning station...')
           setTrackArtist('Analog Static')
+          
+          // CROSSFADE: Pre-queue next track during static window (last 2.5s)
+          // This ensures zero delay when transition happens
+          if (!nextTrackQueuedRef.current && tracks.length > 0) {
+            const nextIndex = (expected.trackIndex + 1) % tracks.length
+            try {
+              const nextTrack = tracks[nextIndex]
+              playerTarget.cueVideoById({
+                videoId: nextTrack.videoId,
+              })
+              nextTrackQueuedRef.current = true
+            } catch {}
+          }
         } else {
           const playerState = playerTarget.getPlayerState()
           const actualTrackIndex = currentTrackIndexRef.current
@@ -330,7 +344,9 @@ export default function App() {
 
           // If track index changed or video is paused/unstarted, reload/tune it
           if (!sameTrack || playerState === 2 || playerState === -1) {
+            nextTrackQueuedRef.current = false
             tuneIntoVibe(currentVibe, playerTarget)
+            currentTrackIndexRef.current = expected.trackIndex
           } else {
             // Check drift if playing the same track
             const actualTime = playerTarget.getCurrentTime() || 0
