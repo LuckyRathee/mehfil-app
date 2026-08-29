@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
-import YouTube, { type YouTubeProps } from 'react-youtube'
+import YouTube, { type YouTubeProps, type YouTubePlayer } from 'react-youtube'
 import TopBar from './components/TopBar'
 import SceneBackground from './components/SceneBackground'
 import VibeSwitcher from './components/VibeSwitcher'
@@ -7,7 +7,7 @@ import RadioPlayer from './components/RadioPlayer'
 import DonationButton from './components/DonationButton'
 import LandingPage from './components/LandingPage'
 import { getAllVibes, preloadVibe } from './vibes'
-import { getTrackDurations, preloadTrackDurations } from './data/trackDurations'
+import { getTrackDurations, preloadTrackDurations, preloadAllTrackDurations } from './data/trackDurations'
 import { RADIO_EPOCH } from './data/radioConfig'
 import { getCurrentPlaybackPosition } from './utils/liveSync'
 import type { Vibe, TrackInfo } from './vibes/types'
@@ -37,24 +37,35 @@ export default function App() {
   const [loadError, setLoadError] = useState<string | null>(null)
   const [isDonationOpen, setIsDonationOpen] = useState(false)
 
-  const [playerTarget, setPlayerTarget] = useState<any>(null)
+  const [playerTarget, setPlayerTarget] = useState<YouTubePlayer | null>(null)
   const currentTrackIndexRef = useRef<number>(0)
   const activeVibeIdRef = useRef<string | null>(null)
+  const hasEnteredRadioRef = useRef(false)
+  const isMutedRef = useRef<boolean>(true)
   const audioContextRef = useRef<AudioContext | null>(null)
   const staticNodeRef = useRef<AudioBufferSourceNode | null>(null)
   const staticGainRef = useRef<GainNode | null>(null)
 
   const [audienceCount, setAudienceCount] = useState<number>(1000)
 
+  // Mirror mute intent into a ref so the periodic sync loop can converge the
+  // player's real mute state onto it without being re-created on every toggle.
+  useEffect(() => {
+    isMutedRef.current = isMuted
+  }, [isMuted])
+
+
   // Load all vibes on mount
   useEffect(() => {
     let mounted = true
-    getAllVibes().then((loadedVibes: Vibe[]) => {
+    getAllVibes().then(async (loadedVibes: Vibe[]) => {
       if (mounted) {
         setVibes(loadedVibes)
         if (loadedVibes.length > 0) {
           setCurrentVibe(loadedVibes[0])
           activeVibeIdRef.current = loadedVibes[0].id
+          // Preload all track durations during initial load
+          await preloadAllTrackDurations()
         }
         setIsLoading(false)
       }
@@ -86,7 +97,7 @@ export default function App() {
   }, [])
 
   // Load whatever should currently be playing for a vibe, live-synced
-  const tuneIntoVibe = useCallback(async (vibe: Vibe, player: any) => {
+  const tuneIntoVibe = useCallback(async (vibe: Vibe, player: YouTubePlayer) => {
     const tracks = await getTracksForVibe(vibe.id)
     
     // Guard against race conditions if user has switched vibes during async load
@@ -104,44 +115,70 @@ export default function App() {
     setLoadError(null)
     currentTrackIndexRef.current = position.trackIndex
 
-    if (vibe.playlistId) {
-      try {
-        player.stopVideo()
-      } catch {}
-      player.loadPlaylist({
-        list: vibe.playlistId,
-        listType: 'playlist',
-        index: position.trackIndex,
-        startSeconds: Math.floor(position.offsetSeconds),
-      })
-    } else {
-      try {
-        player.stopVideo()
-      } catch {}
-      const track = tracks[position.trackIndex]
-      player.loadVideoById({
-        videoId: track.videoId,
-        startSeconds: Math.floor(position.offsetSeconds),
-      })
+    try {
+      if (vibe.playlistId) {
+        try {
+          player.stopVideo()
+        } catch {}
+        player.loadPlaylist({
+          list: vibe.playlistId,
+          listType: 'playlist',
+          index: position.trackIndex,
+          startSeconds: Math.floor(position.offsetSeconds),
+        })
+      } else {
+        try {
+          player.stopVideo()
+        } catch {}
+        const track = tracks[position.trackIndex]
+        player.loadVideoById({
+          videoId: track.videoId,
+          startSeconds: Math.floor(position.offsetSeconds),
+        })
+      }
+
+      // Keep the player's mute state aligned with the UI intent after every
+      // (re)load. loadPlaylist/loadVideoById preserve the prior mute flag, so
+      // this is what actually unmutes once the player becomes controllable.
+      if (isMutedRef.current) {
+        player.mute()
+      } else {
+        player.unMute()
+      }
+      player.playVideo()
+    } catch {
+      // The YouTube player rejects method calls until its postMessage channel
+      // is fully live. Swallow it — the 1s sync loop retries tuneIntoVibe.
     }
   }, [getTracksForVibe])
 
   const onPlayerReady: YouTubeProps['onReady'] = useCallback((event) => {
     setPlayerTarget(event.target)
-    
-    // Always mute initially to satisfy browser autoplay policy on startup
-    event.target.mute()
-    
-    if (currentVibe && currentVibe.playlistId) {
-      // Load playlist muted in background to warm up player connections
-      event.target.loadPlaylist({
-        list: currentVibe.playlistId,
-        listType: 'playlist',
-        index: 0,
-        startSeconds: 0,
-      })
+
+    try {
+      // Always mute initially to satisfy browser autoplay policy on startup
+      event.target.mute()
+
+      if (currentVibe) {
+        if (hasEnteredRadioRef.current) {
+          // A selection can happen before the iframe is ready on a cold
+          // deployed load. Tune it here instead of waiting for drift sync.
+          void tuneIntoVibe(currentVibe, event.target)
+        } else if (currentVibe.playlistId) {
+          // Load the initial playlist muted in the background to warm up the
+          // player connection before the first user selection.
+          event.target.loadPlaylist({
+            list: currentVibe.playlistId,
+            listType: 'playlist',
+            index: 0,
+            startSeconds: 0,
+          })
+        }
+      }
+    } catch {
+      // Player not fully controllable yet; the 1s sync loop takes over.
     }
-  }, [currentVibe])
+  }, [currentVibe, tuneIntoVibe])
 
   const onStateChange: YouTubeProps['onStateChange'] = useCallback((event) => {
     if (event.data === 1) {
@@ -162,16 +199,19 @@ export default function App() {
     // if (event.data === 0) { ... }
   }, [currentVibe])
 
-  const onPlayerError: YouTubeProps['onError'] = useCallback(async () => {
+  const onPlayerError: YouTubeProps['onError'] = useCallback(async (event) => {
     setLoadError('Playback error. Retrying with fallback stream...')
     
-    if (playerTarget && currentVibe) {
+    // Prefer the player delivered by this error event. It is available even
+    // when React state has not yet received the onReady target.
+    const player = event.target || playerTarget
+    if (player && currentVibe) {
       try {
         const tracks = await getTracksForVibe(currentVibe.id)
         const position = getCurrentPlaybackPosition(tracks, RADIO_EPOCH)
         if (position && tracks.length) {
           const track = tracks[position.trackIndex]
-          playerTarget.loadVideoById({
+          player.loadVideoById({
             videoId: track.videoId,
             startSeconds: Math.floor(position.offsetSeconds)
           })
@@ -267,6 +307,15 @@ export default function App() {
       if (!expected) return
 
       try {
+        // Converge the player's real mute state onto the UI intent. The
+        // unMute() fired on vibe selection can be dropped before the player
+        // is controllable, so this is the safety net that actually unmutes.
+        if (isMutedRef.current) {
+          if (!playerTarget.isMuted()) playerTarget.mute()
+        } else if (playerTarget.isMuted()) {
+          playerTarget.unMute()
+        }
+
         const isStatic = expected.isStaticWindow
         setIsStaticWindow(isStatic)
 
@@ -299,11 +348,16 @@ export default function App() {
   const handleSelectFromLanding = useCallback((vibeId: string) => {
     const found = vibes.find((v) => v.id === vibeId)
     if (found) {
+      hasEnteredRadioRef.current = true
       activeVibeIdRef.current = vibeId
       setCurrentVibe(found)
+      // Commit the intent to UI state first so entering the vibe and the
+      // unmuted visualizer never hinge on the YouTube player being ready.
+      setIsMuted(false)
       if (playerTarget) {
-        playerTarget.unMute()
-        setIsMuted(false)
+        try {
+          playerTarget.unMute()
+        } catch {}
         tuneIntoVibe(found, playerTarget)
       }
     }
@@ -337,13 +391,15 @@ export default function App() {
 
   const handleToggleMute = useCallback(() => {
     if (playerTarget) {
-      if (isMuted) {
-        playerTarget.unMute()
-      } else {
-        playerTarget.mute()
-      }
+      try {
+        if (isMuted) {
+          playerTarget.unMute()
+        } else {
+          playerTarget.mute()
+        }
+      } catch {}
     }
-    setIsMuted(!isMuted)
+    setIsMuted((muted) => !muted)
   }, [playerTarget, isMuted])
 
   // Preload vibe on hover for faster switching
@@ -356,10 +412,11 @@ export default function App() {
     height: '0',
     width: '0',
     playerVars: {
-      autoplay: 1,
+      autoplay: 0, // Disable autoplay - we control it manually after mute
       controls: 0,
       disablekb: 1,
       playsinline: 1,
+      mute: 1, // Start muted to satisfy browser autoplay policy
     },
   }), [])
 
@@ -390,11 +447,9 @@ export default function App() {
             label={currentVibe?.label || ''}
             backgroundColor={currentVibe?.backgroundColor || '#000'}
             backgroundImage={currentVibe?.backgroundImage}
-            backgroundVideo={currentVibe?.backgroundVideo}
           >
             <div className="scene__bottom">
               <RadioPlayer
-                logo={currentVibe?.logo || '/images/vibe-placeholder.svg'}
                 accentColor={currentVibe?.colorTheme || '#fff'}
                 title={trackTitle}
                 artist={trackArtist}
@@ -421,7 +476,7 @@ export default function App() {
         </>
       )}
 
-      <div style={{ display: 'none' }} aria-hidden="true">
+      <div className="youtube-player-host" aria-hidden="true">
         <YouTube
           opts={opts}
           onReady={onPlayerReady}

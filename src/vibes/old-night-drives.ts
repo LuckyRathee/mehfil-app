@@ -8,7 +8,6 @@ export const oldNightDrivesVibe: Vibe = {
   colorTheme: '#64B5F6',
   logo: '/images/vibe-placeholder.svg',
   backgroundImage: '/images/old-night-drive.png',
-  // backgroundVideo: '/images/Late_night_ride.png',
   playlistId: playlistIds['old-night-drives'],
   tracks: [
     { title: 'Midnight Highway', artist: 'Retrowave Dreams', src: '/audio/old-night-drives-1.mp3' },

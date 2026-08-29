@@ -8,7 +8,6 @@ export const busDriverVibe: Vibe = {
   colorTheme: '#FFA726',
   logo: '/images/vibe-placeholder.svg',
   backgroundImage: '/images/bus-driver.png',
-  backgroundVideo: '/images/bus-driver.png',
   playlistId: playlistIds['bus-driver'],
   tracks: [
     { title: 'Highway Rhythm', artist: 'Road Warriors', src: '/audio/bus-driver-1.mp3' },

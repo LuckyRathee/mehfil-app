@@ -1,18 +1,28 @@
 import fs from 'fs'
+import { execFileSync } from 'child_process'
 
 const API_KEY = process.env.YOUTUBE_API_KEY
-if (!API_KEY) {
-  console.error('Set YOUTUBE_API_KEY env var first')
-  process.exit(1)
-}
 
 const VIBE_PLAYLISTS = {
-  'chai-sutta': 'PL3pHzzJ_qh96fpA11KWFQ5h3nFfzGkIAR',
+  'chai-sutta': 'PLo7WLtfSrhdbdR4K_EQzplNiDYZMFk8jQ',
   'weedy-valley': 'PLCCTHlcjByiLW1E5cG9m_9WGnuXkhmfWj',
   'panwadi': 'PL4zY2tyCYAI0UMnMRD_Tx1LW6fX1RDkB9',
   'bus-driver': 'PL0umg_TNpoZTTdZVIi5tfX69pRmoMFGna',
   'saloon': 'PLy534Is5Apmt6J6Ia61liVa8_b11cC1ov',
   'old-night-drives': 'PL2n9PsUx_VHcVgOATXGVFFP9IXjYO6wMY',
+}
+
+const requestedVibe = process.argv.includes('--vibe')
+  ? process.argv[process.argv.indexOf('--vibe') + 1]
+  : null
+
+const playlistsToFetch = Object.entries(VIBE_PLAYLISTS).filter(([vibeId]) =>
+  !requestedVibe || vibeId === requestedVibe
+)
+
+if (requestedVibe && playlistsToFetch.length === 0) {
+  console.error(`Unknown vibe: ${requestedVibe}`)
+  process.exit(1)
 }
 
 function parseISO8601Duration(iso) {
@@ -89,36 +99,81 @@ async function fetchDurations(videoIds) {
   return durations
 }
 
+function fetchDurationsWithYtDlp(playlistId) {
+  const command = process.env.YT_DLP_BIN || 'yt-dlp'
+  const output = execFileSync(command, [
+    '--flat-playlist',
+    '--dump-single-json',
+    '--skip-download',
+    `https://www.youtube.com/playlist?list=${playlistId}`,
+  ], {
+    encoding: 'utf8',
+    maxBuffer: 20 * 1024 * 1024,
+  })
+  const data = JSON.parse(output)
+  const entries = data.entries || []
+  return {
+    total: entries.length,
+    tracks: entries
+    .filter(entry => entry.id && Number(entry.duration) > 0)
+    .map(entry => ({ videoId: entry.id, duration: Math.round(entry.duration) }))
+  }
+}
+
 async function main() {
   const output = {}
-  for (const [vibeId, playlistId] of Object.entries(VIBE_PLAYLISTS)) {
+  let failedCount = 0
+  for (const [vibeId, playlistId] of playlistsToFetch) {
     console.log(`\n🔍 Fetching ${vibeId} (${playlistId})...`)
     try {
-      const videoIds = await fetchPlaylistItems(playlistId)
-      console.log(`   Found ${videoIds.length} videos`)
+      let tracks
+      let totalVideoCount
+      if (API_KEY) {
+        const videoIds = await fetchPlaylistItems(playlistId)
+        console.log(`   Found ${videoIds.length} videos`)
+        if (videoIds.length === 0) {
+          throw new Error('Playlist returned no videos; keeping the existing cache')
+        }
+        totalVideoCount = videoIds.length
+        const durations = await fetchDurations(videoIds)
+        tracks = videoIds
+          .filter(id => durations[id] > 0)
+          .map(videoId => ({ videoId, duration: durations[videoId] }))
+      } else {
+        console.log('   Using yt-dlp fallback (no YouTube API key set)')
+        const result = fetchDurationsWithYtDlp(playlistId)
+        totalVideoCount = result.total
+        tracks = result.tracks
+        if (tracks.length === 0) {
+          throw new Error('Playlist returned no usable durations; keeping the existing cache')
+        }
+        console.log(`   Found ${tracks.length} videos with durations`)
+      }
       
-      const durations = await fetchDurations(videoIds)
-      
-      const tracks = videoIds
-        .filter(id => durations[id] > 0)
-        .map(videoId => ({ videoId, duration: durations[videoId] }))
-      
-      const skipped = videoIds.length - tracks.length
+      const skipped = totalVideoCount - tracks.length
       if (skipped) console.log(`   ⚠️  Skipped ${skipped} videos with 0/unknown duration`)
       
       output[vibeId] = tracks
       console.log(`   ✅ ${tracks.length} tracks cached`)
     } catch (err) {
+      failedCount += 1
       console.error(`   ❌ Failed: ${err.message}`)
-      output[vibeId] = []
+      console.error('   Existing duration cache was preserved')
     }
   }
 
-  fs.writeFileSync(
-    'src/data/trackDurations.json',
-    JSON.stringify(output, null, 2)
-  )
-  console.log('\n💾 Written to src/data/trackDurations.json')
+  const outputDir = 'src/data/trackDurations'
+  fs.mkdirSync(outputDir, { recursive: true })
+  for (const [vibeId, tracks] of Object.entries(output)) {
+    fs.writeFileSync(
+      `${outputDir}/${vibeId}.json`,
+      JSON.stringify(tracks, null, 2) + '\n'
+    )
+  }
+  console.log(`\n💾 Written ${Object.keys(output).length} duration files to ${outputDir}`)
+  if (failedCount > 0) {
+    process.exitCode = 1
+  }
 }
 
 main()

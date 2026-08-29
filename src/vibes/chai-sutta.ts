@@ -10,7 +10,6 @@ export const chaiSuttaVibe: Vibe = {
   colorTheme: '#7A5A3F',
   logo: VIBE_LOGO_PLACEHOLDER,
   backgroundImage: '/images/chai-sutta.png',
-  // backgroundVideo: '/images/chai-sutta.png',
   playlistId: playlistIds['chai-sutta'],
   tracks: [
     { title: 'Smoky Chai Beats', artist: 'Delhi Dusk', src: '/audio/chai-sutta-1.mp3' },

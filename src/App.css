@@ -117,17 +117,6 @@ textarea {
   z-index: 0;
 }
 
-.scene__video {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  pointer-events: none;
-  z-index: 1;
-  opacity: 1;
-}
-
 .scene::before {
   content: '';
   position: absolute;
@@ -313,16 +302,15 @@ textarea {
 /* ── Radio Player ──────────────────────────────────────────────── */
 
 .radio-player {
-  /* [ left waveform ] [ center logo ] [ right waveform ]
-     No container. No background. No border. The waveform floats directly
-     over the scene; the artwork stays fully visible behind it. */
+  --disc-size: clamp(56px, 4.5vw, 72px);
+  --disc-radius: calc(var(--disc-size) / 2);
+  --wave-disc-gap: 2px;
   display: grid;
-  grid-template-columns: auto auto auto;
-  align-items: center;
-  gap: clamp(10px, 1.6vw, 22px);
+  justify-items: center;
+  gap: 8px;
   position: relative;
   width: 100%;
-  max-width: min(900px, calc(100vw - 40px));
+  max-width: min(1080px, calc(100vw - 28px));
   margin: 0 auto;
   background: transparent;
   border: none;
@@ -342,52 +330,54 @@ textarea {
   z-index: 20;
 }
 
-.radio-player__wave {
-  display: block;
-  width: clamp(90px, 17vw, 240px);
-  height: clamp(64px, 11vh, 110px);
-  opacity: 0.95;
-  z-index: 1;
-}
-
-.radio-player__center {
+.radio-player__visualizer {
   position: relative;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  text-align: center;
+  width: 100%;
+  height: clamp(64px, 10vh, 100px);
 }
 
-.radio-player__halo {
+.radio-player__wave {
+  position: absolute;
+  top: 50%;
+  z-index: 1;
+  display: block;
+  width: min(25vw, calc(50% - var(--disc-radius) - var(--wave-disc-gap)));
+  height: 100%;
+  opacity: 0.95;
+  transform: translateY(-50%);
+}
+
+.radio-player__wave--left {
+  right: calc(50% + var(--disc-radius) + var(--wave-disc-gap));
+}
+
+.radio-player__wave--right {
+  left: calc(50% + var(--disc-radius) + var(--wave-disc-gap));
+  transform: translateY(-50%) scaleX(-1);
+}
+
+.radio-player__disc-anchor {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: clamp(120px, 13vw, 178px);
-  height: clamp(120px, 13vw, 178px);
+  z-index: 2;
+  width: var(--disc-size);
+  height: var(--disc-size);
   transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background: radial-gradient(circle, currentColor 0%, rgba(255, 255, 255, 0.04) 42%, transparent 70%);
-  opacity: 0.1;
-  filter: blur(5px);
-  pointer-events: none;
-  transition: opacity 0.7s ease;
 }
 
 .radio-player__disc {
   position: relative;
-  width: clamp(56px, 6vw, 80px);
-  height: clamp(56px, 6vw, 80px);
+  width: var(--disc-size);
+  height: var(--disc-size);
   margin: 0;
   padding: 0;
-  border: none;
-  border-radius: 50%;
+  border: 0;
+  border-radius: 0;
   background: transparent;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  /* Disc base ring, reserved by the real vibe art later */
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 8px 28px rgba(0, 0, 0, 0.28);
+  box-shadow: none;
   outline: none;
   will-change: transform;
   transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1), filter 0.45s ease, box-shadow 0.45s ease;
@@ -396,22 +386,39 @@ textarea {
 .radio-player__disc img {
   width: 100%;
   height: 100%;
-  border-radius: 50%;
-  object-fit: cover;
   display: block;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.2));
   user-select: none;
   -webkit-user-select: none;
   pointer-events: none;
 }
 
+/* Disc spins while on air, freezes in place when muted. */
 .radio-player__disc-art {
   will-change: transform;
-  /* rAF progressively set here; bounded by the round mask that shows */}
+  animation: mehfil-disc-spin 8s linear infinite;
+}
+
+.radio-player__disc[data-muted='true'] .radio-player__disc-art {
+  animation-play-state: paused;
+}
+
+@keyframes mehfil-disc-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .radio-player__disc-art {
+    animation: none;
+  }
+}
 
 .radio-player__disc:hover {
-  transform: scale(1.05);
-  filter: brightness(1.08);
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.16), 0 12px 36px rgba(0, 0, 0, 0.32);
+  transform: scale(1.025);
+  filter: brightness(1.04);
 }
 
 .radio-player__disc:active {
@@ -424,9 +431,9 @@ textarea {
 }
 
 .radio-player__meta {
-  display: grid;
-  gap: 2px;
-  max-width: min(280px, 60vw);
+  display: flex;
+  justify-content: center;
+  transition: opacity 0.5s ease;
 }
 
 .radio-player__title {
@@ -435,9 +442,8 @@ textarea {
   letter-spacing: 0.01em;
   color: rgba(255, 255, 255, 0.95);
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.35);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .radio-player__artist {
@@ -450,38 +456,51 @@ textarea {
 }
 
 .radio-player__status {
-  height: 10px;
-  font-size: 0.58rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px 3px;
+  border-radius: 999px;
+  font-size: 0.56rem;
   font-weight: 700;
-  letter-spacing: 0.28em;
+  letter-spacing: 0.24em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   transition: color 0.5s ease, opacity 0.5s ease;
 }
 
-.radio-player__disc[data-muted='true'] ~ .radio-player__meta,
-.radio-player__disc[data-muted='true'] ~ .radio-player__status {
+.radio-player__status::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 8px currentColor;
+}
+
+.radio-player__meta[data-muted='true'] {
   opacity: 0.55;
 }
 
 /* Muted state — the player stays visually present but settles down. */
 .radio-player__disc[data-muted='true'] {
-  filter: saturate(0.7) brightness(0.85);
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 6px 20px rgba(0, 0, 0, 0.22);
+  filter: opacity(0.72);
 }
 
 @media (max-width: 640px) {
   .radio-player {
-    gap: 8px;
+    --disc-size: clamp(44px, 12vw, 54px);
+    gap: 7px;
   }
 
-  .radio-player__wave {
-    width: clamp(56px, 28vw, 120px);
-    height: clamp(44px, 8vh, 72px);
+  .radio-player__visualizer {
+    height: clamp(54px, 16vw, 68px);
   }
 
   .radio-player__meta {
-    max-width: 52vw;
+    width: min(92vw, 480px);
   }
 
   .radio-player__title {
@@ -493,8 +512,8 @@ textarea {
   }
 
   .radio-player__status {
-    height: 8px;
     font-size: 0.5rem;
+    padding: 3px 10px;
   }
 }
 
@@ -1441,4 +1460,16 @@ img.landing-header__logo {
   display: flex;
   justify-content: flex-end;
   pointer-events: auto;
+}
+
+/* Keep the YouTube iframe rendered so it can buffer and begin playback, while
+   keeping it out of the visual and keyboard flow. */
+.youtube-player-host {
+  position: fixed;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  inset: -1px auto auto -1px;
 }
