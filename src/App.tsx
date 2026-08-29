@@ -40,6 +40,7 @@ export default function App() {
   const [playerTarget, setPlayerTarget] = useState<YouTubePlayer | null>(null)
   const currentTrackIndexRef = useRef<number>(0)
   const activeVibeIdRef = useRef<string | null>(null)
+  const hasEnteredRadioRef = useRef(false)
   const isMutedRef = useRef<boolean>(true)
   const audioContextRef = useRef<AudioContext | null>(null)
   const staticNodeRef = useRef<AudioBufferSourceNode | null>(null)
@@ -144,6 +145,7 @@ export default function App() {
       } else {
         player.unMute()
       }
+      player.playVideo()
     } catch {
       // The YouTube player rejects method calls until its postMessage channel
       // is fully live. Swallow it — the 1s sync loop retries tuneIntoVibe.
@@ -157,19 +159,26 @@ export default function App() {
       // Always mute initially to satisfy browser autoplay policy on startup
       event.target.mute()
 
-      if (currentVibe && currentVibe.playlistId) {
-        // Load playlist muted in background to warm up player connections
-        event.target.loadPlaylist({
-          list: currentVibe.playlistId,
-          listType: 'playlist',
-          index: 0,
-          startSeconds: 0,
-        })
+      if (currentVibe) {
+        if (hasEnteredRadioRef.current) {
+          // A selection can happen before the iframe is ready on a cold
+          // deployed load. Tune it here instead of waiting for drift sync.
+          void tuneIntoVibe(currentVibe, event.target)
+        } else if (currentVibe.playlistId) {
+          // Load the initial playlist muted in the background to warm up the
+          // player connection before the first user selection.
+          event.target.loadPlaylist({
+            list: currentVibe.playlistId,
+            listType: 'playlist',
+            index: 0,
+            startSeconds: 0,
+          })
+        }
       }
     } catch {
       // Player not fully controllable yet; the 1s sync loop takes over.
     }
-  }, [currentVibe])
+  }, [currentVibe, tuneIntoVibe])
 
   const onStateChange: YouTubeProps['onStateChange'] = useCallback((event) => {
     if (event.data === 1) {
@@ -339,6 +348,7 @@ export default function App() {
   const handleSelectFromLanding = useCallback((vibeId: string) => {
     const found = vibes.find((v) => v.id === vibeId)
     if (found) {
+      hasEnteredRadioRef.current = true
       activeVibeIdRef.current = vibeId
       setCurrentVibe(found)
       // Commit the intent to UI state first so entering the vibe and the

@@ -1,5 +1,5 @@
 export const playlistIds = {
-  'chai-sutta': 'PL3pHzzJ_qh96fpA11KWFQ5h3nFfzGkIAR',
+  'chai-sutta': 'PLo7WLtfSrhdbdR4K_EQzplNiDYZMFk8jQ',
   'weedy-valley': 'PLCCTHlcjByiLW1E5cG9m_9WGnuXkhmfWj',
   'panwadi': 'PL4zY2tyCYAI0UMnMRD_Tx1LW6fX1RDkB9',
   'bus-driver': 'PL0umg_TNpoZTTdZVIi5tfX69pRmoMFGna',
