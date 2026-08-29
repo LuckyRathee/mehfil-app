@@ -4,11 +4,10 @@ import type { Vibe } from './types'
 const vibeModules: Record<string, () => Promise<{ default: Vibe }>> = {
   'chai-sutta': () => import('./chai-sutta'),
   'weedy-valley': () => import('./weedy-valley'),
-  'panwadi': () => import('./panwadi'),
+  'theth-desi': () => import('./panwadi'),
   'bus-driver': () => import('./bus-driver'),
   'saloon': () => import('./saloon'),
   'old-night-drives': () => import('./old-night-drives'),
-  'theth-desi': () => import('./theth-desi'),
 }
 
 // Cache for loaded vibes
