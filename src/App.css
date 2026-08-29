@@ -491,7 +491,7 @@ textarea {
 
 @media (max-width: 640px) {
   .radio-player {
-    --disc-size: clamp(56px, 15vw, 68px);
+    --disc-size: clamp(44px, 12vw, 54px);
     gap: 7px;
   }
 
