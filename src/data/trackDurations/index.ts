@@ -4,7 +4,7 @@ import type { TrackInfo } from '../../vibes/types'
 const trackDurationModules: Record<string, () => Promise<any>> = {
   'chai-sutta': () => import('./chai-sutta.json'),
   'weedy-valley': () => import('./weedy-valley.json'),
-  'panwadi': () => import('./panwadi.json'),
+  'theth-desi': () => import('./theth-desi.json'),
   'bus-driver': () => import('./bus-driver.json'),
   'saloon': () => import('./saloon.json'),
   'old-night-drives': () => import('./old-night-drives.json'),
