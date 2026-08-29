@@ -5,6 +5,10 @@ export const playlistIds = {
   'bus-driver': 'PL0umg_TNpoZTTdZVIi5tfX69pRmoMFGna',
   'saloon': 'PLy534Is5Apmt6J6Ia61liVa8_b11cC1ov',
   'old-night-drives': 'PLHpUqbmxs4E0',
+  'theth-desi': [
+    'PLxyXOYQmKoevrFZwNcodAhyb8K9HVJh6v',
+    'PL_fse-OmUKnYjum577fdYdadOXc610ZRL',
+  ],
 } as const
 
 export type VibeId = keyof typeof playlistIds

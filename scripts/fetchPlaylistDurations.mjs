@@ -10,6 +10,10 @@ const VIBE_PLAYLISTS = {
   'bus-driver': 'PL0umg_TNpoZTTdZVIi5tfX69pRmoMFGna',
   'saloon': 'PLy534Is5Apmt6J6Ia61liVa8_b11cC1ov',
   'old-night-drives': 'PL2n9PsUx_VHcVgOATXGVFFP9IXjYO6wMY',
+  'theth-desi': [
+    'PLxyXOYQmKoevrFZwNcodAhyb8K9HVJh6v',
+    'PL_fse-OmUKnYjum577fdYdadOXc610ZRL',
+  ],
 }
 
 const requestedVibe = process.argv.includes('--vibe')
@@ -123,38 +127,81 @@ function fetchDurationsWithYtDlp(playlistId) {
 async function main() {
   const output = {}
   let failedCount = 0
-  for (const [vibeId, playlistId] of playlistsToFetch) {
-    console.log(`\n🔍 Fetching ${vibeId} (${playlistId})...`)
+  for (const [vibeId, playlistIdOrArray] of playlistsToFetch) {
+    const isMultiPlaylist = Array.isArray(playlistIdOrArray)
+    const playlistIds = isMultiPlaylist ? playlistIdOrArray : [playlistIdOrArray]
+    
+    console.log(`\n🔍 Fetching ${vibeId} (${playlistIds.length} playlist(s))...`)
     try {
-      let tracks
-      let totalVideoCount
-      if (API_KEY) {
-        const videoIds = await fetchPlaylistItems(playlistId)
-        console.log(`   Found ${videoIds.length} videos`)
-        if (videoIds.length === 0) {
-          throw new Error('Playlist returned no videos; keeping the existing cache')
+      let allTracks = []
+      let totalVideoCount = 0
+      
+      // Fetch from all playlists
+      for (let pIdx = 0; pIdx < playlistIds.length; pIdx++) {
+        const playlistId = playlistIds[pIdx]
+        console.log(`   📋 Playlist ${pIdx + 1}/${playlistIds.length}: ${playlistId}`)
+        
+        let tracks
+        if (API_KEY) {
+          const videoIds = await fetchPlaylistItems(playlistId)
+          console.log(`      Found ${videoIds.length} videos`)
+          if (videoIds.length === 0) {
+            console.warn(`      ⚠️  No videos found in this playlist`)
+            continue
+          }
+          totalVideoCount += videoIds.length
+          const durations = await fetchDurations(videoIds)
+          tracks = videoIds
+            .filter(id => durations[id] > 0)
+            .map(videoId => ({ videoId, duration: durations[videoId] }))
+        } else {
+          console.log('      Using yt-dlp fallback (no YouTube API key set)')
+          const result = fetchDurationsWithYtDlp(playlistId)
+          totalVideoCount += result.total
+          tracks = result.tracks
+          if (tracks.length === 0) {
+            console.warn(`      ⚠️  No usable durations in this playlist`)
+            continue
+          }
+          console.log(`      Found ${tracks.length} videos with durations`)
         }
-        totalVideoCount = videoIds.length
-        const durations = await fetchDurations(videoIds)
-        tracks = videoIds
-          .filter(id => durations[id] > 0)
-          .map(videoId => ({ videoId, duration: durations[videoId] }))
-      } else {
-        console.log('   Using yt-dlp fallback (no YouTube API key set)')
-        const result = fetchDurationsWithYtDlp(playlistId)
-        totalVideoCount = result.total
-        tracks = result.tracks
-        if (tracks.length === 0) {
-          throw new Error('Playlist returned no usable durations; keeping the existing cache')
-        }
-        console.log(`   Found ${tracks.length} videos with durations`)
+        allTracks.push(tracks)
       }
       
-      const skipped = totalVideoCount - tracks.length
-      if (skipped) console.log(`   ⚠️  Skipped ${skipped} videos with 0/unknown duration`)
+      if (allTracks.length === 0) {
+        throw new Error('No playlists returned usable tracks; keeping the existing cache')
+      }
       
-      output[vibeId] = tracks
-      console.log(`   ✅ ${tracks.length} tracks cached`)
+      // If multiple playlists, interleave them (3 from each alternating)
+      let finalTracks = allTracks[0] // Start with first playlist
+      if (allTracks.length > 1) {
+        const interleaved = []
+        const BATCH_SIZE = 3
+        let indices = Array(allTracks.length).fill(0)
+        let currentPlaylistIdx = 0
+        
+        const totalTracks = allTracks.reduce((sum, t) => sum + t.length, 0)
+        while (interleaved.length < totalTracks) {
+          const playlist = allTracks[currentPlaylistIdx]
+          const idx = indices[currentPlaylistIdx]
+          
+          // Add up to BATCH_SIZE tracks from current playlist
+          for (let i = 0; i < BATCH_SIZE && idx + i < playlist.length; i++) {
+            interleaved.push(playlist[idx + i])
+          }
+          
+          indices[currentPlaylistIdx] += BATCH_SIZE
+          
+          // Move to next playlist (cycle through)
+          currentPlaylistIdx = (currentPlaylistIdx + 1) % allTracks.length
+        }
+        
+        finalTracks = interleaved
+        console.log(`   🔄 Interleaved ${allTracks.length} playlists (${BATCH_SIZE} tracks alternating)`)
+      }
+      
+      output[vibeId] = finalTracks
+      console.log(`   ✅ ${finalTracks.length} total tracks cached`)
     } catch (err) {
       failedCount += 1
       console.error(`   ❌ Failed: ${err.message}`)
