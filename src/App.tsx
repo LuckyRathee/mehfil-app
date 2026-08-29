@@ -117,7 +117,8 @@ export default function App() {
     currentTrackIndexRef.current = position.trackIndex
 
     try {
-      if (vibe.playlistId) {
+      // Check if playlistId is a valid string (single playlist vibes)
+      if (vibe.playlistId && typeof vibe.playlistId === 'string') {
         try {
           player.stopVideo()
         } catch {}
@@ -128,10 +129,14 @@ export default function App() {
           startSeconds: Math.floor(position.offsetSeconds),
         })
       } else {
+        // For multi-playlist vibes or vibes without playlistId, load individual videos
         try {
           player.stopVideo()
         } catch {}
         const track = tracks[position.trackIndex]
+        if (!track) {
+          throw new Error('Track not found at index: ' + position.trackIndex)
+        }
         player.loadVideoById({
           videoId: track.videoId,
           startSeconds: Math.floor(position.offsetSeconds),
@@ -194,10 +199,10 @@ export default function App() {
         setTrackTitle(cleanTitle)
         setTrackArtist(videoData.author || currentVibe?.label || 'Mehfil Radio')
       }
+    } else if (event.data === 0) {
+      // Video ended - for vibes without playlistId, we need to manually advance
+      // The sync loop will handle it by detecting the state change and loading the next track
     }
-
-    // Don't call tuneIntoVibe on video end - playlist handles next video automatically
-    // if (event.data === 0) { ... }
   }, [currentVibe])
 
   const onPlayerError: YouTubeProps['onError'] = useCallback(async (event) => {
@@ -342,12 +347,12 @@ export default function App() {
           const actualTrackIndex = currentTrackIndexRef.current
           const sameTrack = expected.trackIndex === actualTrackIndex
 
-          // If track index changed or video is paused/unstarted, reload/tune it
-          if (!sameTrack || playerState === 2 || playerState === -1) {
+          // If track index changed or video is paused/unstarted/ended, reload/tune it
+          if (!sameTrack || playerState === 2 || playerState === -1 || playerState === 0) {
             nextTrackQueuedRef.current = false
             tuneIntoVibe(currentVibe, playerTarget)
             currentTrackIndexRef.current = expected.trackIndex
-          } else {
+          } else if (playerState === 1) {
             // Check drift if playing the same track
             const actualTime = playerTarget.getCurrentTime() || 0
             const drift = Math.abs(expected.offsetSeconds - actualTime)

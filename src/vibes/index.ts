@@ -8,6 +8,7 @@ const vibeModules: Record<string, () => Promise<{ default: Vibe }>> = {
   'bus-driver': () => import('./bus-driver'),
   'saloon': () => import('./saloon'),
   'old-night-drives': () => import('./old-night-drives'),
+  'theth-desi': () => import('./theth-desi'),
 }
 
 // Cache for loaded vibes
